@@ -1,0 +1,45 @@
+Elm.Counter = Elm.Counter || {};
+Elm.Counter.make = function (_elm) {
+   "use strict";
+   _elm.Counter = _elm.Counter || {};
+   if (_elm.Counter.values)
+   return _elm.Counter.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Counter",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "Increment":
+            return model + 1;}
+         _U.badCase($moduleName,
+         "between lines 17 and 18");
+      }();
+   });
+   var Increment = {ctor: "Increment"};
+   var view = F2(function (address,
+   $int) {
+      return A2($Html.button,
+      _L.fromArray([A2($Html$Events.onClick,
+      address,
+      Increment)]),
+      _L.fromArray([$Html.text($Basics.toString($int))]));
+   });
+   var init = 0;
+   _elm.Counter.values = {_op: _op
+                         ,init: init
+                         ,Increment: Increment
+                         ,update: update
+                         ,view: view};
+   return _elm.Counter.values;
+};

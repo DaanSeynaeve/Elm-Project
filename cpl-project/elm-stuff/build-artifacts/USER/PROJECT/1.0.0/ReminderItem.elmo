@@ -1,0 +1,69 @@
+Elm.ReminderItem = Elm.ReminderItem || {};
+Elm.ReminderItem.make = function (_elm) {
+   "use strict";
+   _elm.ReminderItem = _elm.ReminderItem || {};
+   if (_elm.ReminderItem.values)
+   return _elm.ReminderItem.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ReminderItem",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Static = Elm.Static.make(_elm);
+   var view = F2(function (model,
+   deco) {
+      return A2($Html.div,
+      _L.fromArray([$Html$Attributes.$class("item reminder")]),
+      _L.fromArray([A2($Html.div,
+                   _L.fromArray([$Html$Attributes.$class("timestamp")]),
+                   _L.fromArray([$Html.text("Created: ")
+                                ,$Html.text(model.$static.created)]))
+                   ,A2($Html.div,
+                   _L.fromArray([$Html$Attributes.$class("timestamp")]),
+                   _L.fromArray([$Html.text("Deadline: ")
+                                ,$Html.text(model.deadline)]))
+                   ,A2($Html.div,
+                   _L.fromArray([$Html$Attributes.$class("body")]),
+                   _L.fromArray([$Html.text(model.$static.body)]))
+                   ,A2($Html.div,
+                   _L.fromArray([$Html$Attributes.$class("buttons")]),
+                   A2($Basics._op["++"],
+                   _L.fromArray([]),
+                   deco))]));
+   });
+   var initNew = function (_v0) {
+      return function () {
+         switch (_v0.ctor)
+         {case "_Tuple3": return {_: {}
+                                 ,$static: {_: {}
+                                           ,body: _v0._0
+                                           ,created: _v0._1}
+                                 ,deadline: _v0._2};}
+         _U.badCase($moduleName,
+         "on line 18, column 5 to 60");
+      }();
+   };
+   var init = function ($static) {
+      return {_: {}
+             ,$static: $static
+             ,deadline: ""};
+   };
+   var Model = F2(function (a,b) {
+      return {_: {}
+             ,$static: a
+             ,deadline: b};
+   });
+   _elm.ReminderItem.values = {_op: _op
+                              ,Model: Model
+                              ,init: init
+                              ,initNew: initNew
+                              ,view: view};
+   return _elm.ReminderItem.values;
+};

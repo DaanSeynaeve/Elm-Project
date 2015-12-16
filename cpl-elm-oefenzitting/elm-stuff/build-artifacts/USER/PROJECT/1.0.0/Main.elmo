@@ -1,0 +1,63 @@
+Elm.Main = Elm.Main || {};
+Elm.Main.make = function (_elm) {
+   "use strict";
+   _elm.Main = _elm.Main || {};
+   if (_elm.Main.values)
+   return _elm.Main.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Main",
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var watchSignal = function (caption) {
+      return $Signal.map($Debug.watch(caption));
+   };
+   var view = F2(function (address,
+   str) {
+      return A2($Html.input,
+      _L.fromArray([A3($Html$Events.on,
+                   "input",
+                   $Html$Events.targetValue,
+                   $Signal.message(address))
+                   ,$Html$Attributes.value(str)
+                   ,$Html$Attributes.type$("text")]),
+      _L.fromArray([]));
+   });
+   var update = F2(function (action,
+   model) {
+      return A2($String.all,
+      $Char.isDigit,
+      action) ? action : model;
+   });
+   var init = "";
+   var mailbox = $Signal.mailbox("");
+   var state = A3($Signal.foldp,
+   update,
+   "",
+   A2(watchSignal,
+   "boe",
+   mailbox.signal));
+   var main = A2($Signal.map,
+   view(mailbox.address),
+   state);
+   _elm.Main.values = {_op: _op
+                      ,mailbox: mailbox
+                      ,init: init
+                      ,update: update
+                      ,view: view
+                      ,state: state
+                      ,main: main
+                      ,watchSignal: watchSignal};
+   return _elm.Main.values;
+};

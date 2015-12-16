@@ -1,0 +1,76 @@
+Elm.CounterPair = Elm.CounterPair || {};
+Elm.CounterPair.make = function (_elm) {
+   "use strict";
+   _elm.CounterPair = _elm.CounterPair || {};
+   if (_elm.CounterPair.values)
+   return _elm.CounterPair.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "CounterPair",
+   $Basics = Elm.Basics.make(_elm),
+   $Counter = Elm.Counter.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var update = F2(function (action,
+   _v0) {
+      return function () {
+         switch (_v0.ctor)
+         {case "_Tuple2":
+            return function () {
+                 switch (action.ctor)
+                 {case "Left":
+                    return {ctor: "_Tuple2"
+                           ,_0: A2($Counter.update,
+                           action._0,
+                           _v0._0)
+                           ,_1: _v0._1};
+                    case "Right":
+                    return {ctor: "_Tuple2"
+                           ,_0: _v0._0
+                           ,_1: A2($Counter.update,
+                           action._0,
+                           _v0._1)};}
+                 _U.badCase($moduleName,
+                 "between lines 19 and 21");
+              }();}
+         _U.badCase($moduleName,
+         "between lines 19 and 21");
+      }();
+   });
+   var Right = function (a) {
+      return {ctor: "Right",_0: a};
+   };
+   var Left = function (a) {
+      return {ctor: "Left",_0: a};
+   };
+   var view = F2(function (address,
+   model) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      _L.fromArray([A2($Counter.view,
+                   A2($Signal.forwardTo,
+                   address,
+                   Left),
+                   $Basics.fst(model))
+                   ,A2($Counter.view,
+                   A2($Signal.forwardTo,
+                   address,
+                   Right),
+                   $Basics.snd(model))]));
+   });
+   var init = {ctor: "_Tuple2"
+              ,_0: $Counter.init
+              ,_1: $Counter.init};
+   _elm.CounterPair.values = {_op: _op
+                             ,init: init
+                             ,Left: Left
+                             ,Right: Right
+                             ,update: update
+                             ,view: view};
+   return _elm.CounterPair.values;
+};

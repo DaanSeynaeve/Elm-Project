@@ -1,0 +1,109 @@
+Elm.ItemList = Elm.ItemList || {};
+Elm.ItemList.make = function (_elm) {
+   "use strict";
+   _elm.ItemList = _elm.ItemList || {};
+   if (_elm.ItemList.values)
+   return _elm.ItemList.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ItemList",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var update = F2(function (action,
+   model) {
+      return function () {
+         switch (action.ctor)
+         {case "ItemAction":
+            return A2($List.map,
+              function (_v2) {
+                 return function () {
+                    switch (_v2.ctor)
+                    {case "_Tuple2":
+                       return _U.eq(_v2._0,
+                         $Basics.fst(action._0)) ? {ctor: "_Tuple2"
+                                                   ,_0: _v2._0
+                                                   ,_1: A2($ItemDecorator.update,
+                                                   $Basics.snd(action._0),
+                                                   _v2._1)} : {ctor: "_Tuple2"
+                                                              ,_0: _v2._0
+                                                              ,_1: _v2._1};}
+                    _U.badCase($moduleName,
+                    "between lines 25 and 27");
+                 }();
+              },
+              model);}
+         return model;
+      }();
+   });
+   var Something = {ctor: "Something"};
+   var ListAction = {ctor: "ListAction"};
+   var ItemAction = function (a) {
+      return {ctor: "ItemAction"
+             ,_0: a};
+   };
+   var getItems = F2(function (address,
+   state) {
+      return function () {
+         var tag = F2(function (i,a) {
+            return ItemAction({ctor: "_Tuple2"
+                              ,_0: i
+                              ,_1: a});
+         });
+         return A2($List.map,
+         function (_v6) {
+            return function () {
+               switch (_v6.ctor)
+               {case "_Tuple2":
+                  return A2($ItemDecorator.view,
+                    A2($Signal.forwardTo,
+                    address,
+                    tag(_v6._0)),
+                    _v6._1);}
+               _U.badCase($moduleName,
+               "on line 43, column 20 to 75");
+            }();
+         },
+         state);
+      }();
+   });
+   var view = F2(function (address,
+   state) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      A2($Basics._op["++"],
+      _L.fromArray([A2($Html.h2,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text("To Do")]))]),
+      A2($Basics._op["++"],
+      A2(getItems,address,state),
+      _L.fromArray([A2($Html.h2,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text("Done")]))]))));
+   });
+   var init = function (items) {
+      return A3($List.map2,
+      F2(function (v0,v1) {
+         return {ctor: "_Tuple2"
+                ,_0: v0
+                ,_1: v1};
+      }),
+      _L.range(1,$List.length(items)),
+      items);
+   };
+   _elm.ItemList.values = {_op: _op
+                          ,init: init
+                          ,ItemAction: ItemAction
+                          ,ListAction: ListAction
+                          ,Something: Something
+                          ,update: update
+                          ,view: view
+                          ,getItems: getItems};
+   return _elm.ItemList.values;
+};

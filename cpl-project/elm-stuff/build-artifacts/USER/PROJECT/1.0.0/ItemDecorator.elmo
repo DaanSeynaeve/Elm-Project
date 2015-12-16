@@ -1,0 +1,174 @@
+Elm.ItemDecorator = Elm.ItemDecorator || {};
+Elm.ItemDecorator.make = function (_elm) {
+   "use strict";
+   _elm.ItemDecorator = _elm.ItemDecorator || {};
+   if (_elm.ItemDecorator.values)
+   return _elm.ItemDecorator.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ItemDecorator",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $MailItem = Elm.MailItem.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $ReminderItem = Elm.ReminderItem.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var lblPinned = function (state) {
+      return $Html.text(state.pinned ? "Unpin" : "Pin");
+   };
+   var lblDone = function (state) {
+      return $Html.text(state.done ? "Undo" : "Done");
+   };
+   var MailAction = function (a) {
+      return {ctor: "MailAction"
+             ,_0: a};
+   };
+   var ToggleDone = {ctor: "ToggleDone"};
+   var TogglePinned = {ctor: "TogglePinned"};
+   var makeDecoration = F2(function (address,
+   state) {
+      return _L.fromArray([A2($Html.button,
+                          _L.fromArray([A2($Html$Events.onClick,
+                          address,
+                          TogglePinned)]),
+                          _L.fromArray([lblPinned(state)]))
+                          ,A2($Html.button,
+                          _L.fromArray([A2($Html$Events.onClick,
+                          address,
+                          ToggleDone)]),
+                          _L.fromArray([lblDone(state)]))]);
+   });
+   var view = F2(function (address,
+   state) {
+      return function () {
+         var deco = A2(makeDecoration,
+         address,
+         state);
+         var innerHtml = function () {
+            var _v0 = state.item;
+            switch (_v0.ctor)
+            {case "AMail":
+               return A3($MailItem.view,
+                 A2($Signal.forwardTo,
+                 address,
+                 MailAction),
+                 _v0._0,
+                 deco);
+               case "AReminder":
+               return A2($ReminderItem.view,
+                 _v0._0,
+                 deco);}
+            _U.badCase($moduleName,
+            "between lines 49 and 52");
+         }();
+         return A2($Html.div,
+         _L.fromArray([$Html$Attributes.$class(state.pinned ? "pinned" : "")]),
+         _L.fromArray([innerHtml]));
+      }();
+   });
+   var dateString = function (model) {
+      return function () {
+         var _v3 = model.item;
+         switch (_v3.ctor)
+         {case "AMail":
+            return _v3._0.$static.date;
+            case "AReminder":
+            return _v3._0.$static.created;}
+         _U.badCase($moduleName,
+         "between lines 27 and 29");
+      }();
+   };
+   var decorate = F2(function (t,
+   m) {
+      return {_: {}
+             ,done: false
+             ,item: t(m)
+             ,pinned: false};
+   });
+   var Model = F3(function (a,
+   b,
+   c) {
+      return {_: {}
+             ,done: c
+             ,item: a
+             ,pinned: b};
+   });
+   var AReminder = function (a) {
+      return {ctor: "AReminder"
+             ,_0: a};
+   };
+   var AMail = function (a) {
+      return {ctor: "AMail",_0: a};
+   };
+   var update = F2(function (action,
+   _v6) {
+      return function () {
+         return function () {
+            var $ = function () {
+               switch (action.ctor)
+               {case "MailAction":
+                  return function () {
+                       var _v10 = _v6.item;
+                       switch (_v10.ctor)
+                       {case "AMail":
+                          return {ctor: "_Tuple3"
+                                 ,_0: AMail(A2($MailItem.update,
+                                 action._0,
+                                 _v10._0))
+                                 ,_1: _v6.pinned
+                                 ,_2: _v6.done};
+                          case "AReminder":
+                          return {ctor: "_Tuple3"
+                                 ,_0: _v6.item
+                                 ,_1: _v6.pinned
+                                 ,_2: _v6.done};}
+                       _U.badCase($moduleName,
+                       "between lines 39 and 42");
+                    }();
+                  case "ToggleDone":
+                  return {ctor: "_Tuple3"
+                         ,_0: _v6.item
+                         ,_1: _v6.pinned
+                         ,_2: $Basics.not(_v6.done)};
+                  case "TogglePinned":
+                  return {ctor: "_Tuple3"
+                         ,_0: _v6.item
+                         ,_1: $Basics.not(_v6.pinned)
+                         ,_2: _v6.done};}
+               return {ctor: "_Tuple3"
+                      ,_0: _v6.item
+                      ,_1: _v6.pinned
+                      ,_2: _v6.done};
+            }(),
+            i = $._0,
+            p = $._1,
+            d = $._2;
+            return {_: {}
+                   ,done: d
+                   ,item: i
+                   ,pinned: p};
+         }();
+      }();
+   });
+   _elm.ItemDecorator.values = {_op: _op
+                               ,AMail: AMail
+                               ,AReminder: AReminder
+                               ,Model: Model
+                               ,decorate: decorate
+                               ,dateString: dateString
+                               ,TogglePinned: TogglePinned
+                               ,ToggleDone: ToggleDone
+                               ,MailAction: MailAction
+                               ,update: update
+                               ,view: view
+                               ,makeDecoration: makeDecoration
+                               ,lblDone: lblDone
+                               ,lblPinned: lblPinned};
+   return _elm.ItemDecorator.values;
+};

@@ -1,0 +1,89 @@
+Elm.Shortcuts = Elm.Shortcuts || {};
+Elm.Shortcuts.make = function (_elm) {
+   "use strict";
+   _elm.Shortcuts = _elm.Shortcuts || {};
+   if (_elm.Shortcuts.values)
+   return _elm.Shortcuts.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Shortcuts",
+   $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
+   $ItemFeed = Elm.ItemFeed.make(_elm),
+   $ItemManager = Elm.ItemManager.make(_elm),
+   $Keyboard = Elm.Keyboard.make(_elm),
+   $List = Elm.List.make(_elm),
+   $MailItem = Elm.MailItem.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var alt = $Keyboard.shift;
+   var alt_shortcuts = $Signal.mergeMany(A2($List.map,
+   function (_v0) {
+      return function () {
+         switch (_v0.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var f = F2(function (x,y) {
+                    return A2($CustomTools.toMaybe,
+                    _v0._1,
+                    x && y);
+                 });
+                 return $Signal.dropRepeats(A3($Signal.map2,
+                 f,
+                 alt,
+                 _v0._0));
+              }();}
+         _U.badCase($moduleName,
+         "between lines 25 and 26");
+      }();
+   },
+   _L.fromArray([{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(74)
+                 ,_1: $ItemManager.FD($ItemFeed.ChangeFocus($ItemFeed.Next))}
+                ,{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(75)
+                 ,_1: $ItemManager.FD($ItemFeed.ChangeFocus($ItemFeed.Prev))}
+                ,{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(79)
+                 ,_1: $ItemManager.FD($ItemFeed.FocusAction($ItemDecorator.MailAction($MailItem.ToggleCollapse)))}
+                ,{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(80)
+                 ,_1: $ItemManager.FD($ItemFeed.FocusAction($ItemDecorator.TogglePinned))}
+                ,{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(88)
+                 ,_1: $ItemManager.FD($ItemFeed.FocusAction($ItemDecorator.ToggleDone))}
+                ,{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(86)
+                 ,_1: $ItemManager.FD($ItemFeed.ToggleDoneVis)}
+                ,{ctor: "_Tuple2"
+                 ,_0: $Keyboard.isDown(70)
+                 ,_1: $ItemManager.ToggleVisForm}])));
+   var alt_s = A3($Signal.map2,
+   F2(function (ak,s) {
+      return $Maybe.Just($ItemManager.FD($ItemFeed.SortAction(function () {
+         var _v4 = ak && s;
+         switch (_v4)
+         {case false:
+            return $ItemFeed.Default;
+            case true:
+            return $ItemFeed.OldOnTop;}
+         _U.badCase($moduleName,
+         "between lines 42 and 45");
+      }())));
+   }),
+   alt,
+   $Keyboard.isDown(83));
+   var signal = A2($Signal.merge,
+   $Signal.dropRepeats(alt_shortcuts),
+   $Signal.dropRepeats(alt_s));
+   _elm.Shortcuts.values = {_op: _op
+                           ,signal: signal
+                           ,alt: alt
+                           ,alt_shortcuts: alt_shortcuts
+                           ,alt_s: alt_s};
+   return _elm.Shortcuts.values;
+};

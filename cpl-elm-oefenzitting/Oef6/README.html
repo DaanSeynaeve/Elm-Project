@@ -1,0 +1,116 @@
+<h1 id="exercise-6">Exercise 6</h1>
+<p>Exercise 6 is a larger exercise to teach you how to write modular Elm applications. Instead of writing a one-file application you will now write an application that contains several modules.</p>
+<p>This exercise closely resembles the <a href="https://github.com/evancz/elm-architecture-tutorial/">Elm Architecture Tutorial</a>.</p>
+<p>The Elm Architecture is <em>one</em> way of writing Elm applications, you're free to use other ways of structuring your Elm project.</p>
+<p>The main idea behind the Elm architecture is that you can define components with two functions:</p>
+<ol style="list-style-type: decimal">
+<li>update: given an action, what's the impact on the model?</li>
+<li>view: how do I show the model?</li>
+</ol>
+<p>Components are made up from a few parts:</p>
+<pre class="elm"><code>-- Models the state of a program
+type alias Model = { ... }
+
+
+-- UPDATE
+
+-- Models the type of actions of a program
+type Action = Reset | ...
+
+update : Action -&gt; Model -&gt; Model
+update action model =
+  case action of
+    Reset -&gt; ...
+    ...
+
+
+-- VIEW
+
+-- Defines the templating function, given an address to send actions to and a
+--   state, draw HTML.
+
+view : Signal.Address Action -&gt; Model -&gt; Html
+view =</code></pre>
+<h2 id="example-counter.elm">Example: Counter.elm</h2>
+<p>This module should be similar to elements in the implementation of exercise 5. Exercise 5 in the Elm architecture component form:</p>
+<pre class="elm"><code>type alias Model = Int
+
+-- UPDATE
+
+type Action = Increment
+
+update : Action -&gt; Model -&gt; Model
+update action model =
+  case action of
+    Increment -&gt; model + 1
+
+-- VIEW
+
+view : Signal.Address Action -&gt; Model -&gt; Html
+view address int =
+  Html.button
+        [ Html.Events.onClick address Increment ]
+        [ Html.text &lt;| toString int ]</code></pre>
+<h2 id="example-counterpair.elm">Example: CounterPair.elm</h2>
+<p>This module uses the previous module and should create a component that is made up of three parts:</p>
+<pre class="elm"><code>module CounterPair where
+
+import Signal
+import Html exposing ( Html )
+import Counter
+
+type alias Model = (Counter.Model, Counter.Model)
+
+init : Model
+init = (Counter.init, Counter.init)
+
+-- UPDATE
+
+type Action = Left Counter.Action
+            | Right Counter.Action
+
+update : Action -&gt; Model -&gt; Model
+update action (left, right) =
+  case action of
+    Left subAction -&gt; (Counter.update subAction left, right)
+    Right subAction -&gt; (left, Counter.update subAction right)
+
+-- VIEW
+
+view : Signal.Address Action -&gt; Model -&gt; Html
+view address model =
+  Html.div []
+      [ Counter.view (Signal.forwardTo address Left) (fst model)
+      , Counter.view (Signal.forwardTo address Right) (snd model) ]</code></pre>
+<h2 id="example-main.elm">Example: Main.elm</h2>
+<p>The main module uses the CounterPair module and wires everything together. Contrary to the elm architecture tutorial the included example is not using the StartApp module but instead shows you how to wire everything together with just a mailbox.</p>
+<pre class="elm"><code>module Main where
+
+import Signal
+import Html exposing ( Html )
+import CounterPair
+import Maybe
+
+mailbox : Signal.Mailbox (Maybe CounterPair.Action)
+mailbox = Signal.mailbox Nothing
+
+isDefined : Maybe a -&gt; Bool
+isDefined maybe =
+  case maybe of
+    Just _ -&gt; True
+    _ -&gt; False
+
+state : Signal CounterPair.Model
+state =
+  let update action model =
+        case action of
+          Just a -&gt; CounterPair.update a model
+          _ -&gt; model
+  in Signal.foldp update CounterPair.init mailbox.signal
+
+main : Signal Html
+main =
+  let view = CounterPair.view (Signal.forwardTo mailbox.address Just)
+  in Signal.map view state</code></pre>
+<h2 id="assignment">Assignment</h2>
+<p>Make an application similar to the counter pair example but now instead of only allowing 2 static counters make an application that allows N counters. The goal is to make an application with 2 buttons: &quot;Add counter&quot; and &quot;Remove counter&quot; like the Elm application from the architecture tutorial: http://evancz.github.io/elm-architecture-tutorial/examples/3.html</p>
