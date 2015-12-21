@@ -1,0 +1,75 @@
+Elm.ItemManager = Elm.ItemManager || {};
+Elm.ItemManager.make = function (_elm) {
+   "use strict";
+   _elm.ItemManager = _elm.ItemManager || {};
+   if (_elm.ItemManager.values) return _elm.ItemManager.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $ItemFeed = Elm.ItemFeed.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $ReminderForm = Elm.ReminderForm.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var update = F2(function (action,_p0) {
+      var _p1 = _p0;
+      var _p5 = _p1._2;
+      var _p4 = _p1._1;
+      var _p3 = _p1._0;
+      var _p2 = action;
+      switch (_p2.ctor)
+      {case "FD": return {ctor: "_Tuple3"
+                         ,_0: A2($ItemFeed.update,_p2._0,_p3)
+                         ,_1: _p4
+                         ,_2: _p5};
+         case "FM": return {ctor: "_Tuple3"
+                           ,_0: _p3
+                           ,_1: A2($ReminderForm.update,_p2._0,_p4)
+                           ,_2: _p5};
+         case "Transfer": return {ctor: "_Tuple3"
+                                 ,_0: A2($ItemFeed.update,_p2._0,_p3)
+                                 ,_1: A2($ReminderForm.update,_p2._1,_p4)
+                                 ,_2: _p5};
+         default: return {ctor: "_Tuple3"
+                         ,_0: _p3
+                         ,_1: _p4
+                         ,_2: $Basics.not(_p5)};}
+   });
+   var Transfer = F2(function (a,b) {
+      return {ctor: "Transfer",_0: a,_1: b};
+   });
+   var FM = function (a) {    return {ctor: "FM",_0: a};};
+   var FD = function (a) {    return {ctor: "FD",_0: a};};
+   var view = F2(function (address,_p6) {
+      var _p7 = _p6;
+      var transfertag = function (x) {
+         return A2(Transfer,
+         $ItemFeed.AddItem($Basics.fst(x)),
+         $Basics.snd(x));
+      };
+      return A2($Html.div,
+      _U.list([$Html$Attributes.id("pagewrap")]),
+      _U.list([A2($ItemFeed.view,
+              A2($Signal.forwardTo,address,FD),
+              _p7._0)
+              ,_p7._2 ? A2($ReminderForm.view,
+              A2($Signal.forwardTo,address,transfertag),
+              _p7._1) : $Html.text("")]));
+   });
+   var ToggleVisForm = {ctor: "ToggleVisForm"};
+   var init = F2(function (feed,form) {
+      return {ctor: "_Tuple3",_0: feed,_1: form,_2: true};
+   });
+   return _elm.ItemManager.values = {_op: _op
+                                    ,init: init
+                                    ,ToggleVisForm: ToggleVisForm
+                                    ,FD: FD
+                                    ,FM: FM
+                                    ,Transfer: Transfer
+                                    ,update: update
+                                    ,view: view};
+};

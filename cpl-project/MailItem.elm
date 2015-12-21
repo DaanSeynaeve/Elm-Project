@@ -26,7 +26,6 @@ update action model = case action of
     ToggleCollapse ->
         {   static = model.static,
             collapsed = not model.collapsed    }
-    _ -> model
 
 -- ### View ###
 

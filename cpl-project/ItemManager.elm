@@ -2,7 +2,7 @@ module ItemManager where
 
 import Debug
 import Html exposing ( Html )
-import Signal exposing ( map, (<~) )
+import Signal exposing ( map )
 import Html.Attributes as A exposing ( rel, href )
 import Keyboard as K
 --
@@ -40,7 +40,7 @@ update action (feed, form, formvis) = case action of
         Form.update tb form,
         formvis )
     ToggleVisForm -> (feed, form, not formvis)
-    _ -> (feed,form,formvis)
+--    _ -> (feed,form,formvis)
 
 -- ### View ###
 

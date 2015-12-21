@@ -39,7 +39,6 @@ update action {item,pinned,done} = let (i,p,d) = case action of
         MailAction ma -> case item of
             AMail m -> (AMail (MailItem.update ma m), pinned, done)
             AReminder r -> (item,pinned,done)
-        _ -> (item,pinned,done)
     in {item = i, pinned = p, done = d}
 
 -- # View #

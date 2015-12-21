@@ -1,0 +1,114 @@
+Elm.ReminderForm = Elm.ReminderForm || {};
+Elm.ReminderForm.make = function (_elm) {
+   "use strict";
+   _elm.ReminderForm = _elm.ReminderForm || {};
+   if (_elm.ReminderForm.values) return _elm.ReminderForm.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $ReminderItem = Elm.ReminderItem.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Deadline = function (a) {
+      return {ctor: "Deadline",_0: a};
+   };
+   var Created = function (a) {
+      return {ctor: "Created",_0: a};
+   };
+   var Body = function (a) {    return {ctor: "Body",_0: a};};
+   var Clear = {ctor: "Clear"};
+   var localbox = $Signal.mailbox(Clear);
+   var makeReminder = function (model) {
+      return A2($ItemDecorator.decorate,
+      $ItemDecorator.AReminder,
+      $ReminderItem.initNew(model));
+   };
+   var view = F2(function (address,_p0) {
+      var _p1 = _p0;
+      var _p4 = _p1._2;
+      var _p3 = _p1._1;
+      var _p2 = _p1._0;
+      var model = {ctor: "_Tuple3",_0: _p2,_1: _p3,_2: _p4};
+      var tag = function (x) {
+         return $Signal.message(A2($Signal.forwardTo,
+         localbox.address,
+         x));
+      };
+      return A2($Html.div,
+      _U.list([$Html$Attributes.id("reminder-form")]),
+      _U.list([$CustomTools.header("Add Reminder")
+              ,A2($Html.textarea,
+              _U.list([A3($Html$Events.on,
+                      "input",
+                      $Html$Events.targetValue,
+                      tag(Body))
+                      ,$Html$Attributes.value(_p2)
+                      ,$Html$Attributes.rows(2)
+                      ,$Html$Attributes.cols(40)
+                      ,$Html$Attributes.$class("big")]),
+              _U.list([]))
+              ,A2($Html.input,
+              _U.list([A3($Html$Events.on,
+                      "input",
+                      $Html$Events.targetValue,
+                      tag(Created))
+                      ,$Html$Attributes.value(_p3)
+                      ,$Html$Attributes.type$("date")]),
+              _U.list([]))
+              ,A2($Html.input,
+              _U.list([A3($Html$Events.on,
+                      "input",
+                      $Html$Events.targetValue,
+                      tag(Deadline))
+                      ,$Html$Attributes.value(_p4)
+                      ,$Html$Attributes.type$("date")]),
+              _U.list([]))
+              ,A2($Html.button,
+              _U.list([A2($Html$Events.onClick,
+              address,
+              {ctor: "_Tuple2",_0: makeReminder(model),_1: Clear})]),
+              _U.list([$Html.text("Add")]))]));
+   });
+   var init = {ctor: "_Tuple3",_0: "",_1: "",_2: ""};
+   var update = F2(function (a,_p5) {
+      var _p6 = _p5;
+      var _p10 = _p6._2;
+      var _p9 = _p6._1;
+      var _p8 = _p6._0;
+      var _p7 = a;
+      switch (_p7.ctor)
+      {case "Body": return {ctor: "_Tuple3"
+                           ,_0: _p7._0
+                           ,_1: _p9
+                           ,_2: _p10};
+         case "Created": return {ctor: "_Tuple3"
+                                ,_0: _p8
+                                ,_1: _p7._0
+                                ,_2: _p10};
+         case "Deadline": return {ctor: "_Tuple3"
+                                 ,_0: _p8
+                                 ,_1: _p9
+                                 ,_2: _p7._0};
+         default: return init;}
+   });
+   var signal = localbox.signal;
+   return _elm.ReminderForm.values = {_op: _op
+                                     ,signal: signal
+                                     ,init: init
+                                     ,makeReminder: makeReminder
+                                     ,Clear: Clear
+                                     ,Body: Body
+                                     ,Created: Created
+                                     ,Deadline: Deadline
+                                     ,localbox: localbox
+                                     ,update: update
+                                     ,view: view};
+};

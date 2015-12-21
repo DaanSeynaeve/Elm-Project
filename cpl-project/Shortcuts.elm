@@ -10,12 +10,15 @@ import MailItem
 import CustomTools exposing ( toMaybe )
 
 type alias Action = M.Action
--- type alias FD = M.FD
+
+-- ### Outgoing signal ###
 
 signal : Signal (Maybe Action)
 signal = Signal.merge
     (Signal.dropRepeats alt_shortcuts)
     (Signal.dropRepeats alt_s)
+
+-- ### Shortcuts ###
 
 alt = K.shift -- ALT modifier
 

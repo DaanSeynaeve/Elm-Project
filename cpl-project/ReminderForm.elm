@@ -11,7 +11,12 @@ import CustomTools as CT
 import ItemDecorator as ID
 import ReminderItem
 
---- ### MODEL ###
+-- ### Outgoing signal ###
+
+signal : Signal LocalAction
+signal = localbox.signal
+
+-- ### MODEL ###
 
 type alias Model = (String, String, String)
 
@@ -33,9 +38,6 @@ type LocalAction = Clear
 
 localbox : Signal.Mailbox LocalAction
 localbox = Signal.mailbox Clear
-
-localmail : Signal LocalAction
-localmail = localbox.signal
 
 update : LocalAction -> Model -> Model
 update a (body,created,deadline) = case a of

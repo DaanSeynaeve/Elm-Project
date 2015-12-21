@@ -1,0 +1,50 @@
+Elm.ReminderItem = Elm.ReminderItem || {};
+Elm.ReminderItem.make = function (_elm) {
+   "use strict";
+   _elm.ReminderItem = _elm.ReminderItem || {};
+   if (_elm.ReminderItem.values) return _elm.ReminderItem.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Static = Elm.Static.make(_elm);
+   var _op = {};
+   var view = F2(function (model,deco) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("item reminder")]),
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.$class("timestamp")]),
+              _U.list([$Html.text("Created: ")
+                      ,$Html.text(model.$static.created)]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("timestamp")]),
+              _U.list([$Html.text("Deadline: "),$Html.text(model.deadline)]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("body")]),
+              _U.list([$Html.text(model.$static.body)]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("buttons")]),
+              A2($Basics._op["++"],_U.list([]),deco))]));
+   });
+   var initNew = function (_p0) {
+      var _p1 = _p0;
+      return {$static: {body: _p1._0,created: _p1._1}
+             ,deadline: _p1._2};
+   };
+   var init = function ($static) {
+      return {$static: $static,deadline: ""};
+   };
+   var Model = F2(function (a,b) {
+      return {$static: a,deadline: b};
+   });
+   return _elm.ReminderItem.values = {_op: _op
+                                     ,Model: Model
+                                     ,init: init
+                                     ,initNew: initNew
+                                     ,view: view};
+};

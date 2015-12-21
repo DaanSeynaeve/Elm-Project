@@ -71,6 +71,7 @@ type Action = ItemAction (Int, ItemDecorator.Action)
             | ChangeFocus FocusDirection
             | SortAction SortKey
             | AddItem ItemDecorator.Model
+            | AddBatch (List ItemDecorator.Model)
             | ToggleDoneVis
 
 type FocusDirection = Prev | Next
@@ -83,7 +84,7 @@ update action model = case action of
         SortAction skey -> u_skey model skey
         AddItem item    -> addItem item model
         ToggleDoneVis   -> u_dvis model (not model.dvis)
-        _               -> model
+        AddBatch items  -> List.foldl addItem model items
 
 addItem : ItemDecorator.Model -> Model -> Model
 addItem item model =

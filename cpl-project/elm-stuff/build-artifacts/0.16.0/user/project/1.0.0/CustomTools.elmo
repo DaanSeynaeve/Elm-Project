@@ -1,0 +1,102 @@
+Elm.CustomTools = Elm.CustomTools || {};
+Elm.CustomTools.make = function (_elm) {
+   "use strict";
+   _elm.CustomTools = _elm.CustomTools || {};
+   if (_elm.CustomTools.values) return _elm.CustomTools.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var hey = F2(function (_p0,v) {
+      var _p1 = v;
+      if (_p1.ctor === "Call") {
+            return false;
+         } else {
+            return true;
+         }
+   });
+   var hey2 = hey(hey);
+   var thisis = function (s) {
+      var _p2 = s;
+      if (_p2 === "crazy") {
+            return true;
+         } else {
+            return false;
+         }
+   };
+   var you = true;
+   var Met = {ctor: "Met"};
+   var Call = {ctor: "Call"};
+   var i = F2(function (a,_p3) {
+      var _p4 = a;
+      if (_p4.ctor === "Just") {
+            return _p4._0;
+         } else {
+            return Call;
+         }
+   });
+   var test = A2(hey,
+   hey,
+   A2(i,$Maybe.Just(Met),you)) && thisis("crazy");
+   var header = function (s) {
+      return A2($Html.h2,_U.list([]),_U.list([$Html.text(s)]));
+   };
+   var nor = F2(function (x,y) {
+      return A2(F2(function (x,y) {    return x || y;}),
+      $Basics.not(x),
+      $Basics.not(y));
+   });
+   _op["?"] = F2(function ($default,maybe) {
+      return A2($Maybe.withDefault,$default,maybe);
+   });
+   _op["$"] = F2(function (caption,s) {
+      return A2($Signal.map,$Debug.watch(caption),s);
+   });
+   var watchSignal = function (caption) {
+      return $Signal.map($Debug.watch(caption));
+   };
+   var toMaybe = F2(function (a,bool) {
+      var _p5 = bool;
+      if (_p5 === true) {
+            return $Maybe.Just(a);
+         } else {
+            return $Maybe.Nothing;
+         }
+   });
+   var isDefined = function (maybe) {
+      var _p6 = maybe;
+      if (_p6.ctor === "Just") {
+            return true;
+         } else {
+            return false;
+         }
+   };
+   var zip = F2(function (xs,ys) {
+      return A3($List.map2,
+      F2(function (v0,v1) {
+         return {ctor: "_Tuple2",_0: v0,_1: v1};
+      }),
+      xs,
+      ys);
+   });
+   return _elm.CustomTools.values = {_op: _op
+                                    ,zip: zip
+                                    ,isDefined: isDefined
+                                    ,toMaybe: toMaybe
+                                    ,watchSignal: watchSignal
+                                    ,nor: nor
+                                    ,header: header
+                                    ,Call: Call
+                                    ,Met: Met
+                                    ,you: you
+                                    ,thisis: thisis
+                                    ,i: i
+                                    ,hey: hey
+                                    ,hey2: hey2
+                                    ,test: test};
+};

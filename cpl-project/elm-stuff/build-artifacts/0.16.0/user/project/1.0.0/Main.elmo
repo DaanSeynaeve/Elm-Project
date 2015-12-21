@@ -1,0 +1,112 @@
+Elm.Main = Elm.Main || {};
+Elm.Main.make = function (_elm) {
+   "use strict";
+   _elm.Main = _elm.Main || {};
+   if (_elm.Main.values) return _elm.Main.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Http = Elm.Http.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
+   $ItemFeed = Elm.ItemFeed.make(_elm),
+   $ItemManager = Elm.ItemManager.make(_elm),
+   $List = Elm.List.make(_elm),
+   $MailFetcher = Elm.MailFetcher.make(_elm),
+   $MailItem = Elm.MailItem.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $ReminderForm = Elm.ReminderForm.make(_elm),
+   $ReminderItem = Elm.ReminderItem.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Shortcuts = Elm.Shortcuts.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Static = Elm.Static.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var css = function (path) {
+      return A3($Html.node,
+      "link",
+      _U.list([$Html$Attributes.rel("stylesheet")
+              ,$Html$Attributes.href(path)]),
+      _U.list([]));
+   };
+   var view = F2(function (address,state) {
+      return A2($Html.main$,
+      _U.list([]),
+      _U.list([A2($Html.header,
+              _U.list([]),
+              _U.list([css("style.css")]))
+              ,A2($Html.body,
+              _U.list([]),
+              _U.list([A2($ItemManager.view,
+              A2($Signal.forwardTo,address,$Maybe.Just),
+              state)]))]));
+   });
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      if (_p0.ctor === "Just") {
+            return A2($ItemManager.update,_p0._0,model);
+         } else {
+            return model;
+         }
+   });
+   var fetchMails = Elm.Native.Task.make(_elm).performSignal("fetchMails",
+   $MailFetcher.fetchMails);
+   var makeFormUpdate = $Signal.map(function (_p1) {
+      return $Maybe.Just($ItemManager.FM(_p1));
+   });
+   var makeBatch = $Signal.map(function (_p2) {
+      return $Maybe.Just($ItemManager.FD($ItemFeed.AddBatch(_p2)));
+   });
+   var mailbox = $Signal.mailbox($Maybe.Nothing);
+   var master = $Signal.mergeMany(A2($Basics._op["++"],
+   _U.list([A2($CustomTools._op["$"],"MAILBOX",mailbox.signal)]),
+   A2($Basics._op["++"],
+   _U.list([A2($CustomTools._op["$"],
+   "NEW MAIL",
+   makeBatch($MailFetcher.signal))]),
+   A2($Basics._op["++"],
+   _U.list([A2($CustomTools._op["$"],
+   "LOCAL MAILBOXES",
+   makeFormUpdate($ReminderForm.signal))]),
+   _U.list([A2($CustomTools._op["$"],
+   "SHORTCUT",
+   $Shortcuts.signal)])))));
+   var initFeed = $ItemFeed.init(A2($Basics._op["++"],
+   A2($List.map,
+   function (_p3) {
+      return A2($ItemDecorator.decorate,
+      $ItemDecorator.AMail,
+      $MailItem.init(_p3));
+   },
+   $Static.emails),
+   A2($List.map,
+   function (_p4) {
+      return A2($ItemDecorator.decorate,
+      $ItemDecorator.AReminder,
+      $ReminderItem.init(_p4));
+   },
+   $Static.reminders)));
+   var init = A2($ItemManager.init,initFeed,$ReminderForm.init);
+   var state = A3($Signal.foldp,
+   update,
+   init,
+   A2($CustomTools._op["$"],"MASTER",master));
+   var main = A2($Signal.map,
+   view(mailbox.address),
+   A2($CustomTools._op["$"],"MAIN STATE",state));
+   return _elm.Main.values = {_op: _op
+                             ,main: main
+                             ,state: state
+                             ,init: init
+                             ,initFeed: initFeed
+                             ,master: master
+                             ,mailbox: mailbox
+                             ,makeBatch: makeBatch
+                             ,makeFormUpdate: makeFormUpdate
+                             ,update: update
+                             ,view: view
+                             ,css: css};
+};

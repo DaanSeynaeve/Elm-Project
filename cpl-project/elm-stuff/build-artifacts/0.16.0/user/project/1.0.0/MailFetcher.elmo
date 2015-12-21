@@ -1,0 +1,71 @@
+Elm.MailFetcher = Elm.MailFetcher || {};
+Elm.MailFetcher.make = function (_elm) {
+   "use strict";
+   _elm.MailFetcher = _elm.MailFetcher || {};
+   if (_elm.MailFetcher.values) return _elm.MailFetcher.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Http = Elm.Http.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $MailItem = Elm.MailItem.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Static = Elm.Static.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var reader = A2(F2(function (x,y) {
+      return A2($Json$Decode._op[":="],x,y);
+   }),
+   "emails",
+   $Json$Decode.list(A6($Json$Decode.object5,
+   $Static.Email,
+   A2($Json$Decode._op[":="],"from",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"to",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"title",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"body",$Json$Decode.string),
+   A2($Json$Decode._op[":="],"date",$Json$Decode.string))));
+   var sourceUrl = "http://localhost:8000/json/newmails.json";
+   var newMails = $Signal.mailbox(_U.list([]));
+   var makeMail = function (email) {
+      return A2($ItemDecorator.decorate,
+      $ItemDecorator.AMail,
+      $MailItem.init(email));
+   };
+   var lookupMails = function (_p0) {
+      return A2($Task.andThen,
+      A2($Http.get,reader,sourceUrl),
+      function (task) {
+         return A2($Signal.send,
+         newMails.address,
+         A2($List.map,makeMail,task));
+      });
+   };
+   var fetchMails = A2($Signal.map,
+   lookupMails,
+   $Time.every(1 * $Time.second));
+   var dropOld = F2(function ($new,old) {
+      return A2($List.filter,
+      function (x) {
+         return $Basics.not(A2($List.member,x,old));
+      },
+      $new);
+   });
+   var signal = A3($Signal.foldp,
+   dropOld,
+   _U.list([]),
+   $Signal.dropRepeats(newMails.signal));
+   return _elm.MailFetcher.values = {_op: _op
+                                    ,signal: signal
+                                    ,dropOld: dropOld
+                                    ,makeMail: makeMail
+                                    ,newMails: newMails
+                                    ,sourceUrl: sourceUrl
+                                    ,fetchMails: fetchMails
+                                    ,lookupMails: lookupMails
+                                    ,reader: reader};
+};
