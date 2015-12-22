@@ -7,11 +7,9 @@ import Html.Attributes as A exposing ( rel, href )
 import Keyboard as K
 --
 import CustomTools exposing ( ($), watchSignal, isDefined, (?), toMaybe )
--- import MailItem
--- import ReminderItem
--- import Static
+import ReminderItem
 import List exposing ( (::) )
--- import ItemDecorator as ID exposing ( decorate )
+import ItemDecorator as ID exposing ( decorate )
 import ItemFeed as Feed
 import ReminderForm as Form
 
@@ -24,12 +22,15 @@ init feed form = (feed, form, True)
 
 -- ### Actions ###
 
-type Action =
-    ToggleVisForm
-    | FD Feed.Action
-    | FM Form.LocalAction
-    | Transfer Feed.Action Form.LocalAction
---    | List Action
+type Action = ToggleVisForm
+            | FD Feed.Action
+            | FM Form.Action
+            | Transfer Feed.Action Form.Action
+
+makeTransfer : ReminderItem.Model -> Form.Action -> Action
+makeTransfer reminder a =
+    let item = decorate ID.AReminder reminder
+    in Transfer (Feed.AddItem item) a
 
 update : Action -> Model -> Model
 update action (feed, form, formvis) = case action of
@@ -40,20 +41,21 @@ update action (feed, form, formvis) = case action of
         Form.update tb form,
         formvis )
     ToggleVisForm -> (feed, form, not formvis)
---    _ -> (feed,form,formvis)
 
 -- ### View ###
 
 view : Signal.Address Action -> Model -> Html
 view address (feedState,formState,showForm) =
-    let transfertag x = Transfer (Feed.AddItem (fst x)) (snd x)
+    let fm a = case Form.makeResult a formState of
+        Just reminder -> makeTransfer reminder a
+        Nothing -> FM a
     in Html.div [ A.id "pagewrap" ] [
         Feed.view
             (Signal.forwardTo address FD)
             feedState,
         if showForm
         then Form.view
-            (Signal.forwardTo address transfertag)
+            (Signal.forwardTo address fm)
             formState
         else Html.text ""
     ]

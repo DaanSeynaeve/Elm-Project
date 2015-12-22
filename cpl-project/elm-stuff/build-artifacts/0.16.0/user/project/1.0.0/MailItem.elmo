@@ -23,8 +23,8 @@ Elm.MailItem.make = function (_elm) {
    };
    var update = F2(function (action,model) {
       var _p0 = action;
-      return {$static: model.$static
-             ,collapsed: $Basics.not(model.collapsed)};
+      return _U.update(model,
+      {collapsed: $Basics.not(model.collapsed)});
    });
    var ToggleCollapse = {ctor: "ToggleCollapse"};
    var makeMoreButton = F2(function (address,state) {

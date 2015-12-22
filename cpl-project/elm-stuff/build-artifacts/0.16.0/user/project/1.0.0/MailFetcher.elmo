@@ -47,7 +47,7 @@ Elm.MailFetcher.make = function (_elm) {
    };
    var fetchMails = A2($Signal.map,
    lookupMails,
-   $Time.every(1 * $Time.second));
+   $Time.every(20 * $Time.second));
    var dropOld = F2(function ($new,old) {
       return A2($List.filter,
       function (x) {

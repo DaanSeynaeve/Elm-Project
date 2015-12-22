@@ -5,6 +5,7 @@ Elm.CustomTools.make = function (_elm) {
    if (_elm.CustomTools.values) return _elm.CustomTools.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -12,37 +13,39 @@ Elm.CustomTools.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var hey = F2(function (_p0,v) {
-      var _p1 = v;
-      if (_p1.ctor === "Call") {
-            return false;
-         } else {
-            return true;
-         }
-   });
-   var hey2 = hey(hey);
-   var thisis = function (s) {
-      var _p2 = s;
-      if (_p2 === "crazy") {
-            return true;
-         } else {
-            return false;
-         }
+   var monthToInt = function (m) {
+      var _p0 = m;
+      switch (_p0.ctor)
+      {case "Jan": return 1;
+         case "Feb": return 2;
+         case "Mar": return 3;
+         case "Apr": return 4;
+         case "May": return 5;
+         case "Jun": return 6;
+         case "Jul": return 7;
+         case "Aug": return 8;
+         case "Sep": return 9;
+         case "Oct": return 10;
+         case "Nov": return 11;
+         default: return 12;}
    };
-   var you = true;
-   var Met = {ctor: "Met"};
-   var Call = {ctor: "Call"};
-   var i = F2(function (a,_p3) {
-      var _p4 = a;
-      if (_p4.ctor === "Just") {
-            return _p4._0;
-         } else {
-            return Call;
-         }
-   });
-   var test = A2(hey,
-   hey,
-   A2(i,$Maybe.Just(Met),you)) && thisis("crazy");
+   var formatDate = function (date) {
+      return A2($Basics._op["++"],
+      function (_p1) {
+         return $Basics.toString($Date.year(_p1));
+      }(date),
+      A2($Basics._op["++"],
+      "-",
+      A2($Basics._op["++"],
+      function (_p2) {
+         return $Basics.toString(monthToInt($Date.month(_p2)));
+      }(date),
+      A2($Basics._op["++"],
+      "-",
+      function (_p3) {
+         return $Basics.toString($Date.day(_p3));
+      }(date)))));
+   };
    var header = function (s) {
       return A2($Html.h2,_U.list([]),_U.list([$Html.text(s)]));
    };
@@ -61,16 +64,16 @@ Elm.CustomTools.make = function (_elm) {
       return $Signal.map($Debug.watch(caption));
    };
    var toMaybe = F2(function (a,bool) {
-      var _p5 = bool;
-      if (_p5 === true) {
+      var _p4 = bool;
+      if (_p4 === true) {
             return $Maybe.Just(a);
          } else {
             return $Maybe.Nothing;
          }
    });
    var isDefined = function (maybe) {
-      var _p6 = maybe;
-      if (_p6.ctor === "Just") {
+      var _p5 = maybe;
+      if (_p5.ctor === "Just") {
             return true;
          } else {
             return false;
@@ -91,12 +94,6 @@ Elm.CustomTools.make = function (_elm) {
                                     ,watchSignal: watchSignal
                                     ,nor: nor
                                     ,header: header
-                                    ,Call: Call
-                                    ,Met: Met
-                                    ,you: you
-                                    ,thisis: thisis
-                                    ,i: i
-                                    ,hey: hey
-                                    ,hey2: hey2
-                                    ,test: test};
+                                    ,monthToInt: monthToInt
+                                    ,formatDate: formatDate};
 };

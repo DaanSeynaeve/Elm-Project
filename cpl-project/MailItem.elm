@@ -23,9 +23,7 @@ init m = { static = m, collapsed = True }
 type Action = ToggleCollapse
 update : Action -> Model -> Model
 update action model = case action of
-    ToggleCollapse ->
-        {   static = model.static,
-            collapsed = not model.collapsed    }
+    ToggleCollapse -> { model | collapsed = not model.collapsed }
 
 -- ### View ###
 

@@ -2,7 +2,7 @@ module Main where
 
 import Debug
 import Html exposing ( Html )
-import Signal exposing ( map )
+import Signal
 import Html.Attributes as A exposing ( rel, href )
 import Keyboard as K
 import Http
@@ -27,23 +27,23 @@ import MailFetcher
 -- Name: Daan Seynaeve
 -- Student ID: r0296224
 
--- Total hours: +30
+-- Total hours: +33
 
 -- * Add a hotkey to toggle the visibility of 'done' items.
 -- Status: Completed
--- Summary: Works as expected
+-- Summary: Works as expected.
 
 
 -- * Hide the 'add reminder' functionality and add a hotkey to toggle its
 -- * visibility.
 -- Status: Completed
--- Summary: Works as expected
+-- Summary: Works as expected.
 
 
 -- * Put the current date as the default in the date picker when adding
 -- * reminders.
--- Status: Completed / Attempted / Unattempted
--- Summary:
+-- Status: Completed
+-- Summary: Works as expected.
 
 
 -- * Add a deadline property to reminders and mark all reminders that are past
@@ -62,15 +62,15 @@ import MailFetcher
 -- * http://people.cs.kuleuven.be/~bob.reynders/2015-2016/emails.json
 -- Status: Attempted
 -- Summary: Currently only works for a locally stored version
--- of the JSON-file due to a permission issue.
+--          of the JSON-file due to a permission issue.
 
 
 -- * Periodically check for e-mails from Json (same url).
 -- Status: Completed
 -- Summary: Works as expected (except the permission issue)
--- Only adds mails that it has not seen before in the current session.
--- Incremental change of the json is allowed, as well as replacing
--- its contents entirely.
+--          Only adds mails that it has not seen before in the current
+--          session. Incremental change of the json is allowed, as well as
+--          replacing its contents entirely.
 
 -- * Add persistence to your application by using Html local storage so that
 -- * newly added reminders are still there after a reload.
@@ -84,29 +84,16 @@ import MailFetcher
 
 -- Start of program
 
--- # Model #
+-- ### Model ###
 
 type alias Model = ItemManager.Model
 type alias Action = ItemManager.Action
 
 main : Signal Html.Html
 main = Signal.map (view mailbox.address) ("MAIN STATE" $ state)
--- main = Signal.map (sandview) sandstate
+
 state : Signal Model
 state = Signal.foldp update init ("MASTER" $ master)
-
--- ### Sandbox ###
--- sandview : String -> Html
--- sandview s = Html.text s
---
--- sandstate = Signal.foldp sandupdate "test" sandmaster
---
--- sandmaster = Signal.map (toString << Date.fromTime) <| every second
---
--- sandupdate a m = a
---
--- sandbox : Signal.Mailbox (Maybe String)
--- sandbox = Signal.mailbox Nothing
 
 -- ### Initizalization ###
 
@@ -122,15 +109,15 @@ initFeed = Feed.init <|
 
 master : Signal (Maybe Action)
 master = Signal.mergeMany <|
-        ["MAILBOX"          $ mailbox.signal]
-    ++  ["NEW MAIL"         $ makeBatch MailFetcher.signal]
-    ++  ["LOCAL MAILBOXES"  $ makeFormUpdate Form.signal]
-    ++  ["SHORTCUT"         $ Shortcuts.signal]
+        ["MAILBOX"  $ mailbox.signal]
+    ++  ["NEW MAIL" $ makeFeedBatch MailFetcher.signal]
+    ++  ["FORM"     $ makeFormUpdate Form.signal]
+    ++  ["SHORTCUT" $ Shortcuts.signal]
 
 mailbox : Signal.Mailbox (Maybe Action)
 mailbox = Signal.mailbox Nothing
 
-makeBatch = Signal.map (Just << ItemManager.FD << Feed.AddBatch)
+makeFeedBatch = Signal.map (Just << ItemManager.FD << Feed.AddBatch)
 makeFormUpdate = Signal.map (Just << ItemManager.FM)
 
 -- ### Bind ports ###

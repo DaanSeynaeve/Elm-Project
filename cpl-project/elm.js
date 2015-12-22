@@ -12273,6 +12273,7 @@ Elm.CustomTools.make = function (_elm) {
    if (_elm.CustomTools.values) return _elm.CustomTools.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -12280,37 +12281,39 @@ Elm.CustomTools.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var hey = F2(function (_p0,v) {
-      var _p1 = v;
-      if (_p1.ctor === "Call") {
-            return false;
-         } else {
-            return true;
-         }
-   });
-   var hey2 = hey(hey);
-   var thisis = function (s) {
-      var _p2 = s;
-      if (_p2 === "crazy") {
-            return true;
-         } else {
-            return false;
-         }
+   var monthToInt = function (m) {
+      var _p0 = m;
+      switch (_p0.ctor)
+      {case "Jan": return 1;
+         case "Feb": return 2;
+         case "Mar": return 3;
+         case "Apr": return 4;
+         case "May": return 5;
+         case "Jun": return 6;
+         case "Jul": return 7;
+         case "Aug": return 8;
+         case "Sep": return 9;
+         case "Oct": return 10;
+         case "Nov": return 11;
+         default: return 12;}
    };
-   var you = true;
-   var Met = {ctor: "Met"};
-   var Call = {ctor: "Call"};
-   var i = F2(function (a,_p3) {
-      var _p4 = a;
-      if (_p4.ctor === "Just") {
-            return _p4._0;
-         } else {
-            return Call;
-         }
-   });
-   var test = A2(hey,
-   hey,
-   A2(i,$Maybe.Just(Met),you)) && thisis("crazy");
+   var formatDate = function (date) {
+      return A2($Basics._op["++"],
+      function (_p1) {
+         return $Basics.toString($Date.year(_p1));
+      }(date),
+      A2($Basics._op["++"],
+      "-",
+      A2($Basics._op["++"],
+      function (_p2) {
+         return $Basics.toString(monthToInt($Date.month(_p2)));
+      }(date),
+      A2($Basics._op["++"],
+      "-",
+      function (_p3) {
+         return $Basics.toString($Date.day(_p3));
+      }(date)))));
+   };
    var header = function (s) {
       return A2($Html.h2,_U.list([]),_U.list([$Html.text(s)]));
    };
@@ -12329,16 +12332,16 @@ Elm.CustomTools.make = function (_elm) {
       return $Signal.map($Debug.watch(caption));
    };
    var toMaybe = F2(function (a,bool) {
-      var _p5 = bool;
-      if (_p5 === true) {
+      var _p4 = bool;
+      if (_p4 === true) {
             return $Maybe.Just(a);
          } else {
             return $Maybe.Nothing;
          }
    });
    var isDefined = function (maybe) {
-      var _p6 = maybe;
-      if (_p6.ctor === "Just") {
+      var _p5 = maybe;
+      if (_p5.ctor === "Just") {
             return true;
          } else {
             return false;
@@ -12359,14 +12362,8 @@ Elm.CustomTools.make = function (_elm) {
                                     ,watchSignal: watchSignal
                                     ,nor: nor
                                     ,header: header
-                                    ,Call: Call
-                                    ,Met: Met
-                                    ,you: you
-                                    ,thisis: thisis
-                                    ,i: i
-                                    ,hey: hey
-                                    ,hey2: hey2
-                                    ,test: test};
+                                    ,monthToInt: monthToInt
+                                    ,formatDate: formatDate};
 };
 Elm.Static = Elm.Static || {};
 Elm.Static.make = function (_elm) {
@@ -12431,8 +12428,8 @@ Elm.MailItem.make = function (_elm) {
    };
    var update = F2(function (action,model) {
       var _p0 = action;
-      return {$static: model.$static
-             ,collapsed: $Basics.not(model.collapsed)};
+      return _U.update(model,
+      {collapsed: $Basics.not(model.collapsed)});
    });
    var ToggleCollapse = {ctor: "ToggleCollapse"};
    var makeMoreButton = F2(function (address,state) {
@@ -12677,6 +12674,27 @@ Elm.ItemFeed.make = function (_elm) {
       _U.list([$Html$Attributes.$class(focus ? "focus itemwrap" : "itemwrap")]),
       _U.list([item]));
    });
+   var updateItem = F2(function (ia,model) {
+      var items$ = A2($List.map,
+      function (_p0) {
+         var _p1 = _p0;
+         var _p3 = _p1._1;
+         var _p2 = _p1._0;
+         return _U.eq(_p2,$Basics.fst(ia)) ? {ctor: "_Tuple2"
+                                             ,_0: _p2
+                                             ,_1: A2($ItemDecorator.update,
+                                             $Basics.snd(ia),
+                                             _p3)} : {ctor: "_Tuple2",_0: _p2,_1: _p3};
+      },
+      model.items);
+      return _U.update(model,{items: items$});
+   });
+   var addItem = F2(function (item,model) {
+      return _U.update(model,
+      {items: A2($List._op["::"],
+      {ctor: "_Tuple2",_0: $List.length(model.items),_1: item},
+      model.items)});
+   });
    var Next = {ctor: "Next"};
    var Prev = {ctor: "Prev"};
    var ToggleDoneVis = {ctor: "ToggleDoneVis"};
@@ -12705,14 +12723,14 @@ Elm.ItemFeed.make = function (_elm) {
       return A2($Basics._op["++"],
       _U.list([$CustomTools.header(title)]),
       A2($List.map,
-      function (_p0) {
-         var _p1 = _p0;
-         var _p2 = _p1._0;
+      function (_p4) {
+         var _p5 = _p4;
+         var _p6 = _p5._0;
          return A2(wrapItem,
-         _U.eq(_p2,fid),
+         _U.eq(_p6,fid),
          A2($ItemDecorator.view,
-         A2($Signal.forwardTo,address,tag(_p2)),
-         _p1._1));
+         A2($Signal.forwardTo,address,tag(_p6)),
+         _p5._1));
       },
       items));
    });
@@ -12723,55 +12741,83 @@ Elm.ItemFeed.make = function (_elm) {
    });
    var splitFeed = function (items) {
       return A2($List.partition,
-      function (_p3) {
+      function (_p7) {
          return $Basics.not(function (_) {
             return _.done;
-         }($Basics.snd(_p3)));
+         }($Basics.snd(_p7)));
       },
       items);
    };
+   var updateFocus = F2(function (fd,model) {
+      var focus$ = function () {
+         var len = $List.length(model.dvis ? model.items : $Basics.fst(splitFeed(model.items)));
+         if (_U.eq(len,0)) return model.focus; else {
+               var _p8 = fd;
+               if (_p8.ctor === "Next") {
+                     return A2($Basics._op["%"],model.focus + 1,len);
+                  } else {
+                     return A2($Basics._op["%"],model.focus - 1,len);
+                  }
+            }
+      }();
+      return _U.update(model,{focus: focus$});
+   });
    var sortedFeed = function (model) {
-      var _p4 = model.skey;
-      if (_p4.ctor === "Default") {
+      var _p9 = model.skey;
+      if (_p9.ctor === "Default") {
             return A2($Basics.uncurry,
             F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
             A2($List.partition,
-            function (_p5) {
+            function (_p10) {
                return function (_) {
                   return _.pinned;
-               }($Basics.snd(_p5));
+               }($Basics.snd(_p10));
             },
             model.items));
          } else {
             return A2($List.sortBy,
-            function (_p6) {
-               return $ItemDecorator.dateString($Basics.snd(_p6));
+            function (_p11) {
+               return $ItemDecorator.dateString($Basics.snd(_p11));
             },
             model.items);
          }
    };
    var getFid = function (model) {
-      var _p7 = splitFeed(sortedFeed(model));
-      var l1 = _p7._0;
-      var l2 = _p7._1;
+      var _p12 = splitFeed(sortedFeed(model));
+      var l1 = _p12._0;
+      var l2 = _p12._1;
       return A2($CustomTools._op["?"],
       A2($CustomTools._op["?"],
       -1,
       A2($Maybe.andThen,
       $List.head(l1),
-      function (_p8) {
-         return $Maybe.Just($Basics.fst(_p8));
+      function (_p13) {
+         return $Maybe.Just($Basics.fst(_p13));
       })),
       A2(itemId,
       model.dvis ? A2($Basics._op["++"],l1,l2) : l1,
       model.focus));
    };
+   var update = F2(function (action,model) {
+      var _p14 = action;
+      switch (_p14.ctor)
+      {case "ItemAction": return A2(updateItem,_p14._0,model);
+         case "FocusAction": return A2(updateItem,
+           {ctor: "_Tuple2",_0: getFid(model),_1: _p14._0},
+           model);
+         case "ChangeFocus": return A2(updateFocus,_p14._0,model);
+         case "SortAction": return _U.update(model,{skey: _p14._0});
+         case "AddItem": return A2(addItem,_p14._0,model);
+         case "ToggleDoneVis": return _U.update(model,
+           {dvis: $Basics.not(model.dvis)});
+         default: return A3($List.foldl,addItem,model,_p14._0);}
+   });
    var view = F2(function (address,state) {
       var fid = getFid(state);
       var subview = A2(viewItems,address,fid);
-      var _p9 = splitFeed(sortedFeed(state));
-      var l1 = _p9._0;
-      var l2 = _p9._1;
+      var _p15 = splitFeed(sortedFeed(state));
+      var l1 = _p15._0;
+      var l2 = _p15._1;
       return A2($Html.div,
       _U.list([]),
       A2($Basics._op["++"],
@@ -12779,85 +12825,6 @@ Elm.ItemFeed.make = function (_elm) {
       $Basics.not($List.isEmpty(l2)) && state.dvis ? A2(subview,
       "Done",
       l2) : _U.list([])));
-   });
-   var u_dvis = F2(function (_p10,val) {
-      var _p11 = _p10;
-      return {items: _p11.items
-             ,focus: _p11.focus
-             ,skey: _p11.skey
-             ,dvis: val};
-   });
-   var u_skey = F2(function (_p12,val) {
-      var _p13 = _p12;
-      return {items: _p13.items
-             ,focus: _p13.focus
-             ,skey: val
-             ,dvis: _p13.dvis};
-   });
-   var u_focus = F2(function (_p14,val) {
-      var _p15 = _p14;
-      return {items: _p15.items
-             ,focus: val
-             ,skey: _p15.skey
-             ,dvis: _p15.dvis};
-   });
-   var updateFocus = F2(function (fd,model) {
-      var focus$ = function () {
-         var len = $List.length(model.dvis ? model.items : $Basics.fst(splitFeed(model.items)));
-         if (_U.eq(len,0)) return model.focus; else {
-               var _p16 = fd;
-               if (_p16.ctor === "Next") {
-                     return A2($Basics._op["%"],model.focus + 1,len);
-                  } else {
-                     return A2($Basics._op["%"],model.focus - 1,len);
-                  }
-            }
-      }();
-      return A2(u_focus,model,focus$);
-   });
-   var u_items = F2(function (_p17,val) {
-      var _p18 = _p17;
-      return {items: val
-             ,focus: _p18.focus
-             ,skey: _p18.skey
-             ,dvis: _p18.dvis};
-   });
-   var addItem = F2(function (item,model) {
-      return A2(u_items,
-      model,
-      A2($List._op["::"],
-      {ctor: "_Tuple2",_0: $List.length(model.items),_1: item},
-      model.items));
-   });
-   var updateItem = F2(function (ia,model) {
-      var items$ = A2($List.map,
-      function (_p19) {
-         var _p20 = _p19;
-         var _p22 = _p20._1;
-         var _p21 = _p20._0;
-         return _U.eq(_p21,$Basics.fst(ia)) ? {ctor: "_Tuple2"
-                                              ,_0: _p21
-                                              ,_1: A2($ItemDecorator.update,
-                                              $Basics.snd(ia),
-                                              _p22)} : {ctor: "_Tuple2",_0: _p21,_1: _p22};
-      },
-      model.items);
-      return A2(u_items,model,items$);
-   });
-   var update = F2(function (action,model) {
-      var _p23 = action;
-      switch (_p23.ctor)
-      {case "ItemAction": return A2(updateItem,_p23._0,model);
-         case "FocusAction": return A2(updateItem,
-           {ctor: "_Tuple2",_0: getFid(model),_1: _p23._0},
-           model);
-         case "ChangeFocus": return A2(updateFocus,_p23._0,model);
-         case "SortAction": return A2(u_skey,model,_p23._0);
-         case "AddItem": return A2(addItem,_p23._0,model);
-         case "ToggleDoneVis": return A2(u_dvis,
-           model,
-           $Basics.not(model.dvis));
-         default: return A3($List.foldl,addItem,model,_p23._0);}
    });
    var Model = F4(function (a,b,c,d) {
       return {items: a,focus: b,skey: c,dvis: d};
@@ -12879,10 +12846,6 @@ Elm.ItemFeed.make = function (_elm) {
                                  ,Default: Default
                                  ,OldOnTop: OldOnTop
                                  ,Model: Model
-                                 ,u_items: u_items
-                                 ,u_focus: u_focus
-                                 ,u_skey: u_skey
-                                 ,u_dvis: u_dvis
                                  ,init: init
                                  ,sortedFeed: sortedFeed
                                  ,splitFeed: splitFeed
@@ -12913,17 +12876,31 @@ Elm.ReminderForm.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $CustomTools = Elm.CustomTools.make(_elm),
+   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
-   $ItemDecorator = Elm.ItemDecorator.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $ReminderItem = Elm.ReminderItem.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
+   var viewDateInput = F2(function (s,target) {
+      return A2($Html.input,
+      _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              target)
+              ,$Html$Attributes.value(s)
+              ,$Html$Attributes.type$("date")]),
+      _U.list([]));
+   });
+   var ChangeTime = function (a) {
+      return {ctor: "ChangeTime",_0: a};
+   };
    var Deadline = function (a) {
       return {ctor: "Deadline",_0: a};
    };
@@ -12931,23 +12908,13 @@ Elm.ReminderForm.make = function (_elm) {
       return {ctor: "Created",_0: a};
    };
    var Body = function (a) {    return {ctor: "Body",_0: a};};
-   var Clear = {ctor: "Clear"};
-   var localbox = $Signal.mailbox(Clear);
-   var makeReminder = function (model) {
-      return A2($ItemDecorator.decorate,
-      $ItemDecorator.AReminder,
-      $ReminderItem.initNew(model));
+   var Submit = {ctor: "Submit"};
+   var defaultTime = function (time) {
+      return $CustomTools.formatDate($Date.fromTime(time));
    };
-   var view = F2(function (address,_p0) {
-      var _p1 = _p0;
-      var _p4 = _p1._2;
-      var _p3 = _p1._1;
-      var _p2 = _p1._0;
-      var model = {ctor: "_Tuple3",_0: _p2,_1: _p3,_2: _p4};
+   var view = F2(function (address,state) {
       var tag = function (x) {
-         return $Signal.message(A2($Signal.forwardTo,
-         localbox.address,
-         x));
+         return $Signal.message(A2($Signal.forwardTo,address,x));
       };
       return A2($Html.div,
       _U.list([$Html$Attributes.id("reminder-form")]),
@@ -12957,67 +12924,76 @@ Elm.ReminderForm.make = function (_elm) {
                       "input",
                       $Html$Events.targetValue,
                       tag(Body))
-                      ,$Html$Attributes.value(_p2)
+                      ,$Html$Attributes.value(state.body)
                       ,$Html$Attributes.rows(2)
                       ,$Html$Attributes.cols(40)
                       ,$Html$Attributes.$class("big")]),
               _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-                      "input",
-                      $Html$Events.targetValue,
-                      tag(Created))
-                      ,$Html$Attributes.value(_p3)
-                      ,$Html$Attributes.type$("date")]),
-              _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-                      "input",
-                      $Html$Events.targetValue,
-                      tag(Deadline))
-                      ,$Html$Attributes.value(_p4)
-                      ,$Html$Attributes.type$("date")]),
-              _U.list([]))
+              ,A2(viewDateInput,
+              A2($CustomTools._op["?"],defaultTime(state.time),state.created),
+              tag(Created))
+              ,A2(viewDateInput,state.deadline,tag(Deadline))
               ,A2($Html.button,
-              _U.list([A2($Html$Events.onClick,
-              address,
-              {ctor: "_Tuple2",_0: makeReminder(model),_1: Clear})]),
+              _U.list([A2($Html$Events.onClick,address,Submit)]),
               _U.list([$Html.text("Add")]))]));
    });
-   var init = {ctor: "_Tuple3",_0: "",_1: "",_2: ""};
-   var update = F2(function (a,_p5) {
-      var _p6 = _p5;
-      var _p10 = _p6._2;
-      var _p9 = _p6._1;
-      var _p8 = _p6._0;
-      var _p7 = a;
-      switch (_p7.ctor)
-      {case "Body": return {ctor: "_Tuple3"
-                           ,_0: _p7._0
-                           ,_1: _p9
-                           ,_2: _p10};
-         case "Created": return {ctor: "_Tuple3"
-                                ,_0: _p8
-                                ,_1: _p7._0
-                                ,_2: _p10};
-         case "Deadline": return {ctor: "_Tuple3"
-                                 ,_0: _p8
-                                 ,_1: _p9
-                                 ,_2: _p7._0};
-         default: return init;}
+   var makeResult = F2(function (a,model) {
+      var _p0 = a;
+      if (_p0.ctor === "Submit") {
+            var vals = {ctor: "_Tuple3"
+                       ,_0: model.body
+                       ,_1: A2($CustomTools._op["?"],
+                       defaultTime(model.time),
+                       model.created)
+                       ,_2: model.deadline};
+            return $Maybe.Just($ReminderItem.initNew(vals));
+         } else {
+            return $Maybe.Nothing;
+         }
    });
-   var signal = localbox.signal;
+   var init = {body: ""
+              ,created: $Maybe.Nothing
+              ,deadline: ""
+              ,time: 0};
+   var update = F2(function (a,model) {
+      var _p1 = a;
+      switch (_p1.ctor)
+      {case "Body": return _U.update(model,{body: _p1._0});
+         case "Created": return _U.update(model,
+           {created: $Maybe.Just(_p1._0)});
+         case "Deadline": return _U.update(model,{deadline: _p1._0});
+         case "Submit": return _U.update(init,{time: model.time});
+         default: return _U.update(model,{time: _p1._0});}
+   });
+   var Model = F4(function (a,b,c,d) {
+      return {body: a,created: b,deadline: c,time: d};
+   });
+   var first = function (time) {
+      return $Signal.dropRepeats(A3($Signal.foldp,
+      F2(function (x,y) {
+         return _U.eq(y,0) ? x : A2($Basics.min,x,y);
+      }),
+      0,
+      time));
+   };
+   var signal = A2($Signal.map,
+   ChangeTime,
+   first($Time.every($Time.second)));
    return _elm.ReminderForm.values = {_op: _op
                                      ,signal: signal
+                                     ,first: first
+                                     ,Model: Model
                                      ,init: init
-                                     ,makeReminder: makeReminder
-                                     ,Clear: Clear
+                                     ,defaultTime: defaultTime
+                                     ,Submit: Submit
                                      ,Body: Body
                                      ,Created: Created
                                      ,Deadline: Deadline
-                                     ,localbox: localbox
+                                     ,ChangeTime: ChangeTime
                                      ,update: update
-                                     ,view: view};
+                                     ,view: view
+                                     ,viewDateInput: viewDateInput
+                                     ,makeResult: makeResult};
 };
 Elm.ItemManager = Elm.ItemManager || {};
 Elm.ItemManager.make = function (_elm) {
@@ -13029,10 +13005,12 @@ Elm.ItemManager.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
    $ItemFeed = Elm.ItemFeed.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $ReminderForm = Elm.ReminderForm.make(_elm),
+   $ReminderItem = Elm.ReminderItem.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
@@ -13063,14 +13041,24 @@ Elm.ItemManager.make = function (_elm) {
    var Transfer = F2(function (a,b) {
       return {ctor: "Transfer",_0: a,_1: b};
    });
+   var makeTransfer = F2(function (reminder,a) {
+      var item = A2($ItemDecorator.decorate,
+      $ItemDecorator.AReminder,
+      reminder);
+      return A2(Transfer,$ItemFeed.AddItem(item),a);
+   });
    var FM = function (a) {    return {ctor: "FM",_0: a};};
    var FD = function (a) {    return {ctor: "FD",_0: a};};
    var view = F2(function (address,_p6) {
       var _p7 = _p6;
-      var transfertag = function (x) {
-         return A2(Transfer,
-         $ItemFeed.AddItem($Basics.fst(x)),
-         $Basics.snd(x));
+      var _p9 = _p7._1;
+      var fm = function (a) {
+         var _p8 = A2($ReminderForm.makeResult,a,_p9);
+         if (_p8.ctor === "Just") {
+               return A2(makeTransfer,_p8._0,a);
+            } else {
+               return FM(a);
+            }
       };
       return A2($Html.div,
       _U.list([$Html$Attributes.id("pagewrap")]),
@@ -13078,8 +13066,8 @@ Elm.ItemManager.make = function (_elm) {
               A2($Signal.forwardTo,address,FD),
               _p7._0)
               ,_p7._2 ? A2($ReminderForm.view,
-              A2($Signal.forwardTo,address,transfertag),
-              _p7._1) : $Html.text("")]));
+              A2($Signal.forwardTo,address,fm),
+              _p9) : $Html.text("")]));
    });
    var ToggleVisForm = {ctor: "ToggleVisForm"};
    var init = F2(function (feed,form) {
@@ -13091,6 +13079,7 @@ Elm.ItemManager.make = function (_elm) {
                                     ,FD: FD
                                     ,FM: FM
                                     ,Transfer: Transfer
+                                    ,makeTransfer: makeTransfer
                                     ,update: update
                                     ,view: view};
 };
@@ -13143,7 +13132,7 @@ Elm.MailFetcher.make = function (_elm) {
    };
    var fetchMails = A2($Signal.map,
    lookupMails,
-   $Time.every(1 * $Time.second));
+   $Time.every(20 * $Time.second));
    var dropOld = F2(function ($new,old) {
       return A2($List.filter,
       function (x) {
@@ -13295,7 +13284,7 @@ Elm.Main.make = function (_elm) {
    var makeFormUpdate = $Signal.map(function (_p1) {
       return $Maybe.Just($ItemManager.FM(_p1));
    });
-   var makeBatch = $Signal.map(function (_p2) {
+   var makeFeedBatch = $Signal.map(function (_p2) {
       return $Maybe.Just($ItemManager.FD($ItemFeed.AddBatch(_p2)));
    });
    var mailbox = $Signal.mailbox($Maybe.Nothing);
@@ -13304,10 +13293,10 @@ Elm.Main.make = function (_elm) {
    A2($Basics._op["++"],
    _U.list([A2($CustomTools._op["$"],
    "NEW MAIL",
-   makeBatch($MailFetcher.signal))]),
+   makeFeedBatch($MailFetcher.signal))]),
    A2($Basics._op["++"],
    _U.list([A2($CustomTools._op["$"],
-   "LOCAL MAILBOXES",
+   "FORM",
    makeFormUpdate($ReminderForm.signal))]),
    _U.list([A2($CustomTools._op["$"],
    "SHORTCUT",
@@ -13342,7 +13331,7 @@ Elm.Main.make = function (_elm) {
                              ,initFeed: initFeed
                              ,master: master
                              ,mailbox: mailbox
-                             ,makeBatch: makeBatch
+                             ,makeFeedBatch: makeFeedBatch
                              ,makeFormUpdate: makeFormUpdate
                              ,update: update
                              ,view: view

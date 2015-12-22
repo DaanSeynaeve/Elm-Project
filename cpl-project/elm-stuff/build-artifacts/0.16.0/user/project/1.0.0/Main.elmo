@@ -57,7 +57,7 @@ Elm.Main.make = function (_elm) {
    var makeFormUpdate = $Signal.map(function (_p1) {
       return $Maybe.Just($ItemManager.FM(_p1));
    });
-   var makeBatch = $Signal.map(function (_p2) {
+   var makeFeedBatch = $Signal.map(function (_p2) {
       return $Maybe.Just($ItemManager.FD($ItemFeed.AddBatch(_p2)));
    });
    var mailbox = $Signal.mailbox($Maybe.Nothing);
@@ -66,10 +66,10 @@ Elm.Main.make = function (_elm) {
    A2($Basics._op["++"],
    _U.list([A2($CustomTools._op["$"],
    "NEW MAIL",
-   makeBatch($MailFetcher.signal))]),
+   makeFeedBatch($MailFetcher.signal))]),
    A2($Basics._op["++"],
    _U.list([A2($CustomTools._op["$"],
-   "LOCAL MAILBOXES",
+   "FORM",
    makeFormUpdate($ReminderForm.signal))]),
    _U.list([A2($CustomTools._op["$"],
    "SHORTCUT",
@@ -104,7 +104,7 @@ Elm.Main.make = function (_elm) {
                              ,initFeed: initFeed
                              ,master: master
                              ,mailbox: mailbox
-                             ,makeBatch: makeBatch
+                             ,makeFeedBatch: makeFeedBatch
                              ,makeFormUpdate: makeFormUpdate
                              ,update: update
                              ,view: view

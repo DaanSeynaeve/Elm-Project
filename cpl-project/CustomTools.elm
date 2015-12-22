@@ -3,6 +3,7 @@ module CustomTools where
 import List
 import Debug
 import Html exposing (Html)
+import Date exposing (Date, day, month, year)
 
 zip : List x -> List y -> List (x,y)
 zip xs ys = List.map2 (,) xs ys
@@ -33,31 +34,21 @@ nor x y = (||) (not x) (not y)
 header : String -> Html
 header s = Html.h2 [] [Html.text s]
 
+monthToInt m = case m of
+    Date.Jan -> 1
+    Date.Feb -> 2
+    Date.Mar -> 3
+    Date.Apr -> 4
+    Date.May -> 5
+    Date.Jun -> 6
+    Date.Jul -> 7
+    Date.Aug -> 8
+    Date.Sep -> 9
+    Date.Oct -> 10
+    Date.Nov -> 11
+    Date.Dec -> 12
 
--- type Hey = Hey | You
-
-type alias Action = Maybe Verb
-type Verb = Call | Met
-
-you : Bool
-you = True
-
-thisis : String -> Bool
-thisis s = case s of
-    "crazy" -> True
-    _ -> False
-
-i : Action -> Bool -> Verb
-i a _ = case a of
-    Just v -> v
-    Nothing -> Call
-
-hey : (a -> b -> c) -> Verb -> Bool
-hey _ v = case v of
-    Call -> False
-    Met -> True
-
-hey2 : Verb -> Bool
-hey2 = hey hey
-
-test = ((hey hey) (i (Just Met) you)) && (thisis "crazy")
+formatDate : Date -> String
+formatDate date = ((toString << year) date)
+        ++ "-" ++ ((toString << monthToInt << month) date)
+        ++ "-" ++ ((toString << day) date)

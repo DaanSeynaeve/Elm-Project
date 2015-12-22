@@ -6,17 +6,31 @@ Elm.ReminderForm.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $CustomTools = Elm.CustomTools.make(_elm),
+   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
-   $ItemDecorator = Elm.ItemDecorator.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $ReminderItem = Elm.ReminderItem.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
+   var viewDateInput = F2(function (s,target) {
+      return A2($Html.input,
+      _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              target)
+              ,$Html$Attributes.value(s)
+              ,$Html$Attributes.type$("date")]),
+      _U.list([]));
+   });
+   var ChangeTime = function (a) {
+      return {ctor: "ChangeTime",_0: a};
+   };
    var Deadline = function (a) {
       return {ctor: "Deadline",_0: a};
    };
@@ -24,23 +38,13 @@ Elm.ReminderForm.make = function (_elm) {
       return {ctor: "Created",_0: a};
    };
    var Body = function (a) {    return {ctor: "Body",_0: a};};
-   var Clear = {ctor: "Clear"};
-   var localbox = $Signal.mailbox(Clear);
-   var makeReminder = function (model) {
-      return A2($ItemDecorator.decorate,
-      $ItemDecorator.AReminder,
-      $ReminderItem.initNew(model));
+   var Submit = {ctor: "Submit"};
+   var defaultTime = function (time) {
+      return $CustomTools.formatDate($Date.fromTime(time));
    };
-   var view = F2(function (address,_p0) {
-      var _p1 = _p0;
-      var _p4 = _p1._2;
-      var _p3 = _p1._1;
-      var _p2 = _p1._0;
-      var model = {ctor: "_Tuple3",_0: _p2,_1: _p3,_2: _p4};
+   var view = F2(function (address,state) {
       var tag = function (x) {
-         return $Signal.message(A2($Signal.forwardTo,
-         localbox.address,
-         x));
+         return $Signal.message(A2($Signal.forwardTo,address,x));
       };
       return A2($Html.div,
       _U.list([$Html$Attributes.id("reminder-form")]),
@@ -50,65 +54,74 @@ Elm.ReminderForm.make = function (_elm) {
                       "input",
                       $Html$Events.targetValue,
                       tag(Body))
-                      ,$Html$Attributes.value(_p2)
+                      ,$Html$Attributes.value(state.body)
                       ,$Html$Attributes.rows(2)
                       ,$Html$Attributes.cols(40)
                       ,$Html$Attributes.$class("big")]),
               _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-                      "input",
-                      $Html$Events.targetValue,
-                      tag(Created))
-                      ,$Html$Attributes.value(_p3)
-                      ,$Html$Attributes.type$("date")]),
-              _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-                      "input",
-                      $Html$Events.targetValue,
-                      tag(Deadline))
-                      ,$Html$Attributes.value(_p4)
-                      ,$Html$Attributes.type$("date")]),
-              _U.list([]))
+              ,A2(viewDateInput,
+              A2($CustomTools._op["?"],defaultTime(state.time),state.created),
+              tag(Created))
+              ,A2(viewDateInput,state.deadline,tag(Deadline))
               ,A2($Html.button,
-              _U.list([A2($Html$Events.onClick,
-              address,
-              {ctor: "_Tuple2",_0: makeReminder(model),_1: Clear})]),
+              _U.list([A2($Html$Events.onClick,address,Submit)]),
               _U.list([$Html.text("Add")]))]));
    });
-   var init = {ctor: "_Tuple3",_0: "",_1: "",_2: ""};
-   var update = F2(function (a,_p5) {
-      var _p6 = _p5;
-      var _p10 = _p6._2;
-      var _p9 = _p6._1;
-      var _p8 = _p6._0;
-      var _p7 = a;
-      switch (_p7.ctor)
-      {case "Body": return {ctor: "_Tuple3"
-                           ,_0: _p7._0
-                           ,_1: _p9
-                           ,_2: _p10};
-         case "Created": return {ctor: "_Tuple3"
-                                ,_0: _p8
-                                ,_1: _p7._0
-                                ,_2: _p10};
-         case "Deadline": return {ctor: "_Tuple3"
-                                 ,_0: _p8
-                                 ,_1: _p9
-                                 ,_2: _p7._0};
-         default: return init;}
+   var makeResult = F2(function (a,model) {
+      var _p0 = a;
+      if (_p0.ctor === "Submit") {
+            var vals = {ctor: "_Tuple3"
+                       ,_0: model.body
+                       ,_1: A2($CustomTools._op["?"],
+                       defaultTime(model.time),
+                       model.created)
+                       ,_2: model.deadline};
+            return $Maybe.Just($ReminderItem.initNew(vals));
+         } else {
+            return $Maybe.Nothing;
+         }
    });
-   var signal = localbox.signal;
+   var init = {body: ""
+              ,created: $Maybe.Nothing
+              ,deadline: ""
+              ,time: 0};
+   var update = F2(function (a,model) {
+      var _p1 = a;
+      switch (_p1.ctor)
+      {case "Body": return _U.update(model,{body: _p1._0});
+         case "Created": return _U.update(model,
+           {created: $Maybe.Just(_p1._0)});
+         case "Deadline": return _U.update(model,{deadline: _p1._0});
+         case "Submit": return _U.update(init,{time: model.time});
+         default: return _U.update(model,{time: _p1._0});}
+   });
+   var Model = F4(function (a,b,c,d) {
+      return {body: a,created: b,deadline: c,time: d};
+   });
+   var first = function (time) {
+      return $Signal.dropRepeats(A3($Signal.foldp,
+      F2(function (x,y) {
+         return _U.eq(y,0) ? x : A2($Basics.min,x,y);
+      }),
+      0,
+      time));
+   };
+   var signal = A2($Signal.map,
+   ChangeTime,
+   first($Time.every($Time.second)));
    return _elm.ReminderForm.values = {_op: _op
                                      ,signal: signal
+                                     ,first: first
+                                     ,Model: Model
                                      ,init: init
-                                     ,makeReminder: makeReminder
-                                     ,Clear: Clear
+                                     ,defaultTime: defaultTime
+                                     ,Submit: Submit
                                      ,Body: Body
                                      ,Created: Created
                                      ,Deadline: Deadline
-                                     ,localbox: localbox
+                                     ,ChangeTime: ChangeTime
                                      ,update: update
-                                     ,view: view};
+                                     ,view: view
+                                     ,viewDateInput: viewDateInput
+                                     ,makeResult: makeResult};
 };

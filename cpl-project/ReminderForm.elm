@@ -5,65 +5,89 @@ import List
 import Signal
 import Html.Attributes as A
 import Html.Events as E
+import Time exposing ( Time, every, second, hour )
+import Date exposing ( Date, toTime, fromTime, day )
 --
-import Static
-import CustomTools as CT
-import ItemDecorator as ID
+import CustomTools as CT exposing ((?))
 import ReminderItem
 
 -- ### Outgoing signal ###
 
-signal : Signal LocalAction
-signal = localbox.signal
+-- TODO : maybe do this better with port task?
+signal : Signal Action
+signal = Signal.map ChangeTime <| first (every second)
+
+first : Signal Time -> Signal Time
+first time = Signal.dropRepeats <|
+    Signal.foldp (\x y -> if y == 0 then x else min x y) 0 time
 
 -- ### MODEL ###
 
-type alias Model = (String, String, String)
+type alias Model = {
+    body     : String,
+    created  : Maybe String,
+    deadline : String,
+    time     : Time
+}
 
 init : Model
-init = ("","","")
+init = {
+        body = "",
+        created = Nothing,
+        deadline = "",
+        time = 0
+    }
 
-makeReminder : Model -> ID.Model
-makeReminder model =
-    ID.decorate ID.AReminder (ReminderItem.initNew model)
+defaultTime : Time -> String
+defaultTime time = CT.formatDate (fromTime time)
 
--- ### LOCAL MAILBOX ###
+-- ### Updates ###
 
-type alias Submit = (ID.Model, LocalAction)
+type Action = Submit
+            | Body String
+            | Created String
+            | Deadline String
+            | ChangeTime Time
 
-type LocalAction = Clear
-    | Body String
-    | Created String
-    | Deadline String
-
-localbox : Signal.Mailbox LocalAction
-localbox = Signal.mailbox Clear
-
-update : LocalAction -> Model -> Model
-update a (body,created,deadline) = case a of
-    Body s      -> (s,created,deadline)
-    Created s   -> (body,s,deadline)
-    Deadline s  -> (body,created,s)
-    Clear       -> init
+update : Action -> Model -> Model
+update a model = case a of
+    Body s       -> { model | body = s }
+    Created s    -> { model | created = Just s }
+    Deadline s   -> { model | deadline = s }
+    Submit       -> { init  | time = model.time }
+    ChangeTime t -> { model | time = t }
 
 -- ### VIEW ###
 
-view : Signal.Address Submit -> Model -> Html
-view address (b,c,d) = let model = (b,c,d) in
-    let tag x = Signal.message (Signal.forwardTo localbox.address x)
+view : Signal.Address Action -> Model -> Html
+view address state =
+    let tag x = Signal.message (Signal.forwardTo address x)
     in Html.div [A.id "reminder-form"] [
         CT.header "Add Reminder",
         Html.textarea
-            [   E.on "input" E.targetValue (tag Body),
-                A.value b, A.rows 2,
-                A.cols 40, A.class "big"   ] [],
-        Html.input
-            [   E.on "input" E.targetValue (tag Created),
-                A.value c, A.type' "date"  ] [],
-        Html.input
-            [   E.on "input" E.targetValue (tag Deadline),
-                A.value d, A.type' "date"] [],
+            [   E.on "input" E.targetValue (tag Body)
+            ,   A.value state.body, A.rows 2
+            ,   A.cols 40, A.class "big"
+            ] [],
+        viewDateInput ((defaultTime state.time) ? state.created) (tag Created),
+        viewDateInput state.deadline (tag Deadline),
         Html.button
-            [E.onClick address (makeReminder model, Clear)]
+            [E.onClick address Submit]
             [Html.text "Add"]
     ]
+
+viewDateInput : String -> (String -> Signal.Message) -> Html
+viewDateInput s target =
+    Html.input [   E.on "input" E.targetValue target
+               ,   A.value s, A.type' "date"
+               ] []
+
+-- ### Result ###
+
+makeResult : Action -> Model -> Maybe ReminderItem.Model
+makeResult a model = case a of
+    Submit -> let vals = ( model.body
+                         , ( defaultTime model.time) ? model.created
+                         , model.deadline)
+              in Just (ReminderItem.initNew vals)
+    _      -> Nothing

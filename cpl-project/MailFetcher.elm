@@ -33,17 +33,11 @@ sourceUrl = "http://localhost:8000/json/newmails.json"
 -- sourceUrl = "http://people.cs.kuleuven.be/~bob.reynders/2015-2016/emails.json"
 
 fetchMails : Signal (Task Http.Error ())
-fetchMails = Signal.map lookupMails (every (1*second))
+fetchMails = Signal.map lookupMails (every (20*second))
 
 lookupMails _ =
     Http.get reader sourceUrl
     `andThen` (\task -> Signal.send newMails.address (List.map makeMail task))
-
---analyze x = case x of
---    Http.Timeout -> "timout"
---    Http.NetworkError -> "net"
---    Http.UnexpectedPayload s -> "JSON" ++ s
---    Http.BadResponse _ _ -> "response"
 
 reader : Json.Decoder (List Static.Email)
 reader = ((:=) "emails") <| Json.list <| Json.object5 Static.Email

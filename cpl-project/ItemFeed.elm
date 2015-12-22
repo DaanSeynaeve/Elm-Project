@@ -24,17 +24,6 @@ type alias Model = {
     dvis  : Bool
 }
 
--- { model | x=y } <=> u_x y model
--- without duplicating the field...
-u_items {items,focus,skey,dvis} val =
-    {items=val,focus=focus,skey=skey,dvis=dvis}
-u_focus {items,focus,skey,dvis} val =
-    {items=items,focus=val,skey=skey,dvis=dvis}
-u_skey {items,focus,skey,dvis} val =
-    {items=items,focus=focus,skey=val,dvis=dvis}
-u_dvis {items,focus,skey,dvis} val =
-    {items=items,focus=focus,skey=skey,dvis=val}
-
 init : List ItemDecorator.Model -> Model
 init items = {
         items = List.map2 (,) [0..List.length(items)-1] items,
@@ -81,14 +70,14 @@ update action model = case action of
         ItemAction ia   -> updateItem ia model
         FocusAction fa  -> updateItem ((getFid model),fa) model
         ChangeFocus fd  -> updateFocus fd model
-        SortAction skey -> u_skey model skey
+        SortAction skey -> { model | skey = skey }
         AddItem item    -> addItem item model
-        ToggleDoneVis   -> u_dvis model (not model.dvis)
+        ToggleDoneVis   -> { model | dvis = not model.dvis }
         AddBatch items  -> List.foldl addItem model items
 
 addItem : ItemDecorator.Model -> Model -> Model
 addItem item model =
-    u_items model <| (length model.items,item)::model.items
+    { model | items = (length model.items,item)::model.items }
 
 updateItem : (Int,ItemDecorator.Action) -> Model -> Model
 updateItem ia model =
@@ -97,7 +86,7 @@ updateItem ia model =
             if (i == (fst ia))
             then (i,ItemDecorator.update (snd ia) x)
             else (i,x)) model.items
-    in u_items model items'
+    in { model | items = items' }
 
 updateFocus : FocusDirection -> Model -> Model
 updateFocus fd model =
@@ -109,7 +98,7 @@ updateFocus fd model =
         in if len == 0 then model.focus else case fd of
             Next -> (model.focus + 1) % len
             Prev -> (model.focus - 1) % len
-    in u_focus model focus'
+    in { model | focus = focus' }
 
 -- ### View ###
 

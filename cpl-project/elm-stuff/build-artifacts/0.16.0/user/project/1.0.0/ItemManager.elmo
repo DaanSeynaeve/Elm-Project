@@ -8,10 +8,12 @@ Elm.ItemManager.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
    $ItemFeed = Elm.ItemFeed.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $ReminderForm = Elm.ReminderForm.make(_elm),
+   $ReminderItem = Elm.ReminderItem.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
@@ -42,14 +44,24 @@ Elm.ItemManager.make = function (_elm) {
    var Transfer = F2(function (a,b) {
       return {ctor: "Transfer",_0: a,_1: b};
    });
+   var makeTransfer = F2(function (reminder,a) {
+      var item = A2($ItemDecorator.decorate,
+      $ItemDecorator.AReminder,
+      reminder);
+      return A2(Transfer,$ItemFeed.AddItem(item),a);
+   });
    var FM = function (a) {    return {ctor: "FM",_0: a};};
    var FD = function (a) {    return {ctor: "FD",_0: a};};
    var view = F2(function (address,_p6) {
       var _p7 = _p6;
-      var transfertag = function (x) {
-         return A2(Transfer,
-         $ItemFeed.AddItem($Basics.fst(x)),
-         $Basics.snd(x));
+      var _p9 = _p7._1;
+      var fm = function (a) {
+         var _p8 = A2($ReminderForm.makeResult,a,_p9);
+         if (_p8.ctor === "Just") {
+               return A2(makeTransfer,_p8._0,a);
+            } else {
+               return FM(a);
+            }
       };
       return A2($Html.div,
       _U.list([$Html$Attributes.id("pagewrap")]),
@@ -57,8 +69,8 @@ Elm.ItemManager.make = function (_elm) {
               A2($Signal.forwardTo,address,FD),
               _p7._0)
               ,_p7._2 ? A2($ReminderForm.view,
-              A2($Signal.forwardTo,address,transfertag),
-              _p7._1) : $Html.text("")]));
+              A2($Signal.forwardTo,address,fm),
+              _p9) : $Html.text("")]));
    });
    var ToggleVisForm = {ctor: "ToggleVisForm"};
    var init = F2(function (feed,form) {
@@ -70,6 +82,7 @@ Elm.ItemManager.make = function (_elm) {
                                     ,FD: FD
                                     ,FM: FM
                                     ,Transfer: Transfer
+                                    ,makeTransfer: makeTransfer
                                     ,update: update
                                     ,view: view};
 };
