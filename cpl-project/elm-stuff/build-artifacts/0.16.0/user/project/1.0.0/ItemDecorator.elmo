@@ -14,7 +14,8 @@ Elm.ItemDecorator.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $ReminderItem = Elm.ReminderItem.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
    var lblPinned = function (state) {
       return $Html.text(state.pinned ? "Unpin" : "Pin");
@@ -22,42 +23,68 @@ Elm.ItemDecorator.make = function (_elm) {
    var lblDone = function (state) {
       return $Html.text(state.done ? "Undo" : "Done");
    };
+   var ReminderAction = function (a) {
+      return {ctor: "ReminderAction",_0: a};
+   };
    var MailAction = function (a) {
       return {ctor: "MailAction",_0: a};
    };
    var ToggleDone = {ctor: "ToggleDone"};
    var TogglePinned = {ctor: "TogglePinned"};
-   var makeDecoration = F2(function (address,state) {
+   var makeDecoration = F2(function (address,model) {
       return _U.list([A2($Html.button,
                      _U.list([A2($Html$Events.onClick,address,TogglePinned)]),
-                     _U.list([lblPinned(state)]))
+                     _U.list([lblPinned(model)]))
                      ,A2($Html.button,
                      _U.list([A2($Html$Events.onClick,address,ToggleDone)]),
-                     _U.list([lblDone(state)]))]);
+                     _U.list([lblDone(model)]))]);
    });
-   var view = F2(function (address,state) {
-      var deco = A2(makeDecoration,address,state);
-      var innerHtml = function () {
-         var _p0 = state.item;
+   var view = F2(function (address,model) {
+      var deco = A2(makeDecoration,address,model);
+      var decoratedView = function () {
+         var _p0 = model.item;
          if (_p0.ctor === "AMail") {
                return A3($MailItem.view,
+               deco,
                A2($Signal.forwardTo,address,MailAction),
-               _p0._0,
-               deco);
+               _p0._0);
             } else {
-               return A2($ReminderItem.view,_p0._0,deco);
+               return A2($ReminderItem.view,deco,_p0._0);
             }
       }();
       return A2($Html.div,
-      _U.list([$Html$Attributes.$class(state.pinned ? "pinned" : "")]),
-      _U.list([innerHtml]));
+      _U.list([$Html$Attributes.$class(model.pinned ? "pinned" : "")]),
+      _U.list([decoratedView]));
    });
-   var dateString = function (model) {
-      var _p1 = model.item;
-      if (_p1.ctor === "AMail") {
-            return _p1._0.$static.date;
+   var itemEqual = F2(function (model1,model2) {
+      var _p1 = {ctor: "_Tuple2",_0: model1.item,_1: model2.item};
+      _v1_2: do {
+         if (_p1.ctor === "_Tuple2") {
+               if (_p1._0.ctor === "AMail") {
+                     if (_p1._1.ctor === "AMail") {
+                           return A2($MailItem.equal,_p1._0._0,_p1._1._0);
+                        } else {
+                           break _v1_2;
+                        }
+                  } else {
+                     if (_p1._1.ctor === "AReminder") {
+                           return A2($ReminderItem.equal,_p1._0._0,_p1._1._0);
+                        } else {
+                           break _v1_2;
+                        }
+                  }
+            } else {
+               break _v1_2;
+            }
+      } while (false);
+      return false;
+   });
+   var itemTime = function (model) {
+      var _p2 = model.item;
+      if (_p2.ctor === "AMail") {
+            return _p2._0.date;
          } else {
-            return _p1._0.$static.created;
+            return _p2._0.created;
          }
    };
    var decorate = F2(function (t,m) {
@@ -70,46 +97,46 @@ Elm.ItemDecorator.make = function (_elm) {
       return {ctor: "AReminder",_0: a};
    };
    var AMail = function (a) {    return {ctor: "AMail",_0: a};};
-   var update = F2(function (action,_p2) {
-      var _p3 = _p2;
-      var _p9 = _p3.pinned;
-      var _p8 = _p3.item;
-      var _p7 = _p3.done;
-      var _p4 = function () {
-         var _p5 = action;
-         switch (_p5.ctor)
-         {case "TogglePinned": return {ctor: "_Tuple3"
-                                      ,_0: _p8
-                                      ,_1: $Basics.not(_p9)
-                                      ,_2: _p7};
-            case "ToggleDone": return {ctor: "_Tuple3"
-                                      ,_0: _p8
-                                      ,_1: _p9
-                                      ,_2: $Basics.not(_p7)};
-            default: var _p6 = _p8;
-              if (_p6.ctor === "AMail") {
-                    return {ctor: "_Tuple3"
-                           ,_0: AMail(A2($MailItem.update,_p5._0,_p6._0))
-                           ,_1: _p9
-                           ,_2: _p7};
-                 } else {
-                    return {ctor: "_Tuple3",_0: _p8,_1: _p9,_2: _p7};
-                 }}
-      }();
-      var i = _p4._0;
-      var p = _p4._1;
-      var d = _p4._2;
-      return {item: i,pinned: p,done: d};
+   var update = F2(function (a,model) {
+      var _p3 = {ctor: "_Tuple2",_0: a,_1: model.item};
+      _v3_4: do {
+         if (_p3.ctor === "_Tuple2") {
+               switch (_p3._0.ctor)
+               {case "TogglePinned": return _U.update(model,
+                    {pinned: $Basics.not(model.pinned)});
+                  case "ToggleDone": return _U.update(model,
+                    {done: $Basics.not(model.done)});
+                  case "MailAction": if (_p3._1.ctor === "AMail") {
+                          return _U.update(model,
+                          {item: AMail(A2($MailItem.update,_p3._0._0,_p3._1._0))});
+                       } else {
+                          break _v3_4;
+                       }
+                  default: if (_p3._1.ctor === "AReminder") {
+                          return _U.update(model,
+                          {item: AReminder(A2($ReminderItem.update,
+                          _p3._0._0,
+                          _p3._1._0))});
+                       } else {
+                          break _v3_4;
+                       }}
+            } else {
+               break _v3_4;
+            }
+      } while (false);
+      return model;
    });
    return _elm.ItemDecorator.values = {_op: _op
                                       ,AMail: AMail
                                       ,AReminder: AReminder
                                       ,Model: Model
                                       ,decorate: decorate
-                                      ,dateString: dateString
+                                      ,itemTime: itemTime
+                                      ,itemEqual: itemEqual
                                       ,TogglePinned: TogglePinned
                                       ,ToggleDone: ToggleDone
                                       ,MailAction: MailAction
+                                      ,ReminderAction: ReminderAction
                                       ,update: update
                                       ,view: view
                                       ,makeDecoration: makeDecoration

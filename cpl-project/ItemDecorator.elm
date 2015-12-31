@@ -5,55 +5,69 @@ import Html exposing ( Html )
 import Html.Events as E
 import Html.Attributes as A
 import List
-import Date
+import Time exposing (Time)
 --
 import MailItem
 import ReminderItem
 
--- # Model #
+-- ### Model ###
 
 type Item = AMail MailItem.Model | AReminder ReminderItem.Model
-type alias Model = {
-        item: Item,
-        pinned: Bool,
-        done: Bool
-    }
 
--- t must be AMail or AReminder
+type alias Model = {
+    item: Item,
+    pinned: Bool,
+    done: Bool
+}
+
 decorate : (m -> Item) -> m -> Model
 decorate t m = {item=(t m),pinned=False,done=False}
 
-dateString : Model -> String
-dateString model = case model.item of
-    AMail item -> item.static.date
-    AReminder item -> item.static.created
+itemTime : Model -> Time
+itemTime model = case model.item of
+    AMail item -> item.date
+    AReminder item -> item.created
 
--- # Update #
+itemEqual : Model -> Model -> Bool
+itemEqual model1 model2 = case (model1.item,model2.item) of
+    (AMail m1, AMail m2) -> MailItem.equal m1 m2
+    (AReminder r1, AReminder r2) -> ReminderItem.equal r1 r2
+    _ -> False
 
-type Action = TogglePinned | ToggleDone | MailAction MailItem.Action
+-- ### Update ###
+
+type Action
+    = TogglePinned
+    | ToggleDone
+    | MailAction MailItem.Action
+    | ReminderAction ReminderItem.Action
 
 update : Action -> Model -> Model
-update action {item,pinned,done} = let (i,p,d) = case action of
-        TogglePinned -> (item,not(pinned),done)
-        ToggleDone -> (item,pinned,not(done))
-        MailAction ma -> case item of
-            AMail m -> (AMail (MailItem.update ma m), pinned, done)
-            AReminder r -> (item,pinned,done)
-    in {item = i, pinned = p, done = d}
+update a model = case (a,model.item) of
+    (TogglePinned,_) -> { model | pinned = not model.pinned }
+    (ToggleDone,_) -> { model | done = not model.done }
+    (MailAction ma, AMail m) ->
+        { model | item = AMail (MailItem.update ma m) }
+    (ReminderAction ra, AReminder r) ->
+        { model | item = AReminder (ReminderItem.update ra r) }
+    _ -> model
 
--- # View #
+-- ### View ###
 
 view : Signal.Address Action -> Model -> Html
-view address state = let deco = (makeDecoration address state) in
-    let innerHtml = case state.item of
-        AMail item -> MailItem.view (Signal.forwardTo address MailAction) item deco
-        AReminder item -> ReminderItem.view item deco
-    in Html.div [A.class (if state.pinned then "pinned" else "")] [innerHtml]
+view address model =
+    let deco = (makeDecoration address model)
+        decoratedView = case model.item of
+            AMail item -> MailItem.view deco (Signal.forwardTo address MailAction) item
+            AReminder item -> ReminderItem.view deco item
+    in Html.div
+        [A.class (if model.pinned then "pinned" else "")]
+        [decoratedView]
 
 makeDecoration : Signal.Address Action -> Model -> List Html
-makeDecoration address state = [
-        Html.button [E.onClick address TogglePinned] [lblPinned state],
-        Html.button [E.onClick address ToggleDone] [lblDone state]
+makeDecoration address model =
+    [   Html.button [E.onClick address TogglePinned] [lblPinned model]
+    ,   Html.button [E.onClick address ToggleDone] [lblDone model]
     ]
 
 lblDone state = Html.text (if state.done then "Undo" else "Done")

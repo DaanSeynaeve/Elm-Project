@@ -20,26 +20,36 @@ Elm.ItemFeed.make = function (_elm) {
       _U.list([$Html$Attributes.$class(focus ? "focus itemwrap" : "itemwrap")]),
       _U.list([item]));
    });
-   var updateItem = F2(function (ia,model) {
+   var updateItem = F2(function (_p0,model) {
+      var _p1 = _p0;
       var items$ = A2($List.map,
-      function (_p0) {
-         var _p1 = _p0;
-         var _p3 = _p1._1;
-         var _p2 = _p1._0;
-         return _U.eq(_p2,$Basics.fst(ia)) ? {ctor: "_Tuple2"
-                                             ,_0: _p2
-                                             ,_1: A2($ItemDecorator.update,
-                                             $Basics.snd(ia),
-                                             _p3)} : {ctor: "_Tuple2",_0: _p2,_1: _p3};
+      function (_p2) {
+         var _p3 = _p2;
+         var _p5 = _p3._1;
+         var _p4 = _p3._0;
+         return _U.eq(_p1._0,_p4) ? {ctor: "_Tuple2"
+                                    ,_0: _p4
+                                    ,_1: A2($ItemDecorator.update,_p1._1,_p5)} : {ctor: "_Tuple2"
+                                                                                 ,_0: _p4
+                                                                                 ,_1: _p5};
       },
       model.items);
       return _U.update(model,{items: items$});
    });
+   var containsItem = F2(function (item,model) {
+      return A2($List.any,
+      function (_p6) {
+         return A2($ItemDecorator.itemEqual,item,$Basics.snd(_p6));
+      },
+      model.items);
+   });
    var addItem = F2(function (item,model) {
-      return _U.update(model,
+      return $Basics.not(A2(containsItem,
+      item,
+      model)) ? _U.update(model,
       {items: A2($List._op["::"],
       {ctor: "_Tuple2",_0: $List.length(model.items),_1: item},
-      model.items)});
+      model.items)}) : model;
    });
    var Next = {ctor: "Next"};
    var Prev = {ctor: "Prev"};
@@ -56,6 +66,9 @@ Elm.ItemFeed.make = function (_elm) {
    var ChangeFocus = function (a) {
       return {ctor: "ChangeFocus",_0: a};
    };
+   var MapItemAction = function (a) {
+      return {ctor: "MapItemAction",_0: a};
+   };
    var FocusAction = function (a) {
       return {ctor: "FocusAction",_0: a};
    };
@@ -63,20 +76,22 @@ Elm.ItemFeed.make = function (_elm) {
       return {ctor: "ItemAction",_0: a};
    };
    var viewItems = F4(function (address,fid,title,items) {
-      var tag = F2(function (i,a) {
-         return ItemAction({ctor: "_Tuple2",_0: i,_1: a});
+      var tag = F2(function (id,a) {
+         return ItemAction({ctor: "_Tuple2",_0: id,_1: a});
       });
+      var newAddress = function (id) {
+         return A2($Signal.forwardTo,address,tag(id));
+      };
+      var subview = function (id) {
+         return $ItemDecorator.view(newAddress(id));
+      };
       return A2($Basics._op["++"],
       _U.list([$CustomTools.header(title)]),
       A2($List.map,
-      function (_p4) {
-         var _p5 = _p4;
-         var _p6 = _p5._0;
-         return A2(wrapItem,
-         _U.eq(_p6,fid),
-         A2($ItemDecorator.view,
-         A2($Signal.forwardTo,address,tag(_p6)),
-         _p5._1));
+      function (_p7) {
+         var _p8 = _p7;
+         var _p9 = _p8._0;
+         return A2(wrapItem,_U.eq(_p9,fid),A2(subview,_p9,_p8._1));
       },
       items));
    });
@@ -87,19 +102,57 @@ Elm.ItemFeed.make = function (_elm) {
    });
    var splitFeed = function (items) {
       return A2($List.partition,
-      function (_p7) {
+      function (_p10) {
          return $Basics.not(function (_) {
             return _.done;
-         }($Basics.snd(_p7)));
+         }($Basics.snd(_p10)));
       },
       items);
    };
-   var updateFocus = F2(function (fd,model) {
+   var sortedFeed = function (model) {
+      var dateSorted = A2($List.sortBy,
+      function (_p11) {
+         return $ItemDecorator.itemTime($Basics.snd(_p11));
+      },
+      model.items);
+      var _p12 = model.skey;
+      if (_p12.ctor === "Default") {
+            return A2($Basics.uncurry,
+            F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
+            A2($List.partition,
+            function (_p13) {
+               return function (_) {
+                  return _.pinned;
+               }($Basics.snd(_p13));
+            },
+            $List.reverse(dateSorted)));
+         } else {
+            return dateSorted;
+         }
+   };
+   var visible = function (model) {
+      var _p14 = splitFeed(sortedFeed(model));
+      var l1 = _p14._0;
+      var l2 = _p14._1;
+      return model.showTodo ? A2($Basics._op["++"],l1,l2) : l1;
+   };
+   var getFid = function (model) {
+      return A2($CustomTools._op["?"],
+      -1,
+      A2(itemId,visible(model),model.focus));
+   };
+   var updateFocus = function (model) {
+      return _U.update(model,
+      {focus: A2($Basics.min,
+      model.focus,
+      $List.length(visible(model)) - 1)});
+   };
+   var changeFocus = F2(function (fdir,model) {
+      var len = $List.length(visible(model));
       var focus$ = function () {
-         var len = $List.length(model.dvis ? model.items : $Basics.fst(splitFeed(model.items)));
          if (_U.eq(len,0)) return model.focus; else {
-               var _p8 = fd;
-               if (_p8.ctor === "Next") {
+               var _p15 = fdir;
+               if (_p15.ctor === "Next") {
                      return A2($Basics._op["%"],model.focus + 1,len);
                   } else {
                      return A2($Basics._op["%"],model.focus - 1,len);
@@ -108,85 +161,55 @@ Elm.ItemFeed.make = function (_elm) {
       }();
       return _U.update(model,{focus: focus$});
    });
-   var sortedFeed = function (model) {
-      var _p9 = model.skey;
-      if (_p9.ctor === "Default") {
-            return A2($Basics.uncurry,
-            F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
-            A2($List.partition,
-            function (_p10) {
-               return function (_) {
-                  return _.pinned;
-               }($Basics.snd(_p10));
-            },
-            model.items));
-         } else {
-            return A2($List.sortBy,
-            function (_p11) {
-               return $ItemDecorator.dateString($Basics.snd(_p11));
-            },
-            model.items);
-         }
-   };
-   var getFid = function (model) {
-      var _p12 = splitFeed(sortedFeed(model));
-      var l1 = _p12._0;
-      var l2 = _p12._1;
-      return A2($CustomTools._op["?"],
-      A2($CustomTools._op["?"],
-      -1,
-      A2($Maybe.andThen,
-      $List.head(l1),
-      function (_p13) {
-         return $Maybe.Just($Basics.fst(_p13));
-      })),
-      A2(itemId,
-      model.dvis ? A2($Basics._op["++"],l1,l2) : l1,
-      model.focus));
-   };
    var update = F2(function (action,model) {
-      var _p14 = action;
-      switch (_p14.ctor)
-      {case "ItemAction": return A2(updateItem,_p14._0,model);
-         case "FocusAction": return A2(updateItem,
-           {ctor: "_Tuple2",_0: getFid(model),_1: _p14._0},
-           model);
-         case "ChangeFocus": return A2(updateFocus,_p14._0,model);
-         case "SortAction": return _U.update(model,{skey: _p14._0});
-         case "AddItem": return A2(addItem,_p14._0,model);
-         case "ToggleDoneVis": return _U.update(model,
-           {dvis: $Basics.not(model.dvis)});
-         default: return A3($List.foldl,addItem,model,_p14._0);}
+      return updateFocus(function () {
+         var _p16 = action;
+         switch (_p16.ctor)
+         {case "ItemAction": return A2(updateItem,_p16._0,model);
+            case "FocusAction": return A2(updateItem,
+              {ctor: "_Tuple2",_0: getFid(model),_1: _p16._0},
+              model);
+            case "MapItemAction": var mapSnd = function (f) {
+                 return $List.map(function (_p17) {
+                    var _p18 = _p17;
+                    return {ctor: "_Tuple2",_0: _p18._0,_1: f(_p18._1)};
+                 });
+              };
+              return _U.update(model,
+              {items: A2(mapSnd,$ItemDecorator.update(_p16._0),model.items)});
+            case "AddItem": return A2(addItem,_p16._0,model);
+            case "AddBatch": return A3($List.foldr,addItem,model,_p16._0);
+            case "ChangeFocus": return A2(changeFocus,_p16._0,model);
+            case "ToggleDoneVis": return _U.update(model,
+              {showTodo: $Basics.not(model.showTodo)});
+            default: return _U.update(model,{skey: _p16._0});}
+      }());
    });
-   var view = F2(function (address,state) {
-      var fid = getFid(state);
+   var view = F2(function (address,model) {
+      var fid = getFid(model);
       var subview = A2(viewItems,address,fid);
-      var _p15 = splitFeed(sortedFeed(state));
-      var l1 = _p15._0;
-      var l2 = _p15._1;
+      var _p19 = splitFeed(sortedFeed(model));
+      var l1 = _p19._0;
+      var l2 = _p19._1;
       return A2($Html.div,
       _U.list([]),
       A2($Basics._op["++"],
-      A2(subview,"To Do",l1),
-      $Basics.not($List.isEmpty(l2)) && state.dvis ? A2(subview,
+      $Basics.not($List.isEmpty(l1)) ? A2(subview,
+      "To Do",
+      l1) : _U.list([]),
+      $Basics.not($List.isEmpty(l2)) && model.showTodo ? A2(subview,
       "Done",
       l2) : _U.list([])));
    });
    var Model = F4(function (a,b,c,d) {
-      return {items: a,focus: b,skey: c,dvis: d};
+      return {items: a,focus: b,skey: c,showTodo: d};
    });
    var OldOnTop = {ctor: "OldOnTop"};
    var Default = {ctor: "Default"};
    var init = function (items) {
-      return {items: A3($List.map2,
-             F2(function (v0,v1) {
-                return {ctor: "_Tuple2",_0: v0,_1: v1};
-             }),
-             _U.range(0,$List.length(items) - 1),
-             items)
-             ,focus: 0
-             ,skey: Default
-             ,dvis: true};
+      return A2(update,
+      AddBatch(items),
+      {items: _U.list([]),focus: 0,skey: Default,showTodo: true});
    };
    return _elm.ItemFeed.values = {_op: _op
                                  ,Default: Default
@@ -195,10 +218,12 @@ Elm.ItemFeed.make = function (_elm) {
                                  ,init: init
                                  ,sortedFeed: sortedFeed
                                  ,splitFeed: splitFeed
+                                 ,visible: visible
                                  ,itemId: itemId
                                  ,getFid: getFid
                                  ,ItemAction: ItemAction
                                  ,FocusAction: FocusAction
+                                 ,MapItemAction: MapItemAction
                                  ,ChangeFocus: ChangeFocus
                                  ,SortAction: SortAction
                                  ,AddItem: AddItem
@@ -207,9 +232,11 @@ Elm.ItemFeed.make = function (_elm) {
                                  ,Prev: Prev
                                  ,Next: Next
                                  ,update: update
+                                 ,containsItem: containsItem
                                  ,addItem: addItem
                                  ,updateItem: updateItem
                                  ,updateFocus: updateFocus
+                                 ,changeFocus: changeFocus
                                  ,view: view
                                  ,viewItems: viewItems
                                  ,wrapItem: wrapItem};

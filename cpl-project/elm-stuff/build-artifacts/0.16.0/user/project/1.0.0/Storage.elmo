@@ -1,0 +1,88 @@
+Elm.Storage = Elm.Storage || {};
+Elm.Storage.make = function (_elm) {
+   "use strict";
+   _elm.Storage = _elm.Storage || {};
+   if (_elm.Storage.values) return _elm.Storage.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $ItemDecorator = Elm.ItemDecorator.make(_elm),
+   $ItemFeed = Elm.ItemFeed.make(_elm),
+   $ItemManager = Elm.ItemManager.make(_elm),
+   $List = Elm.List.make(_elm),
+   $MailItem = Elm.MailItem.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $ReminderForm = Elm.ReminderForm.make(_elm),
+   $ReminderItem = Elm.ReminderItem.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var decodeItem = function (storable) {
+      var _p0 = storable.item;
+      _v0_2: do {
+         if (_p0.ctor === "_Tuple2") {
+               if (_p0._0.ctor === "Just") {
+                     return $Maybe.Just(_U.update(storable,
+                     {item: $ItemDecorator.AMail(_p0._0._0)}));
+                  } else {
+                     if (_p0._1.ctor === "Just") {
+                           return $Maybe.Just(_U.update(storable,
+                           {item: $ItemDecorator.AReminder(_p0._1._0)}));
+                        } else {
+                           break _v0_2;
+                        }
+                  }
+            } else {
+               break _v0_2;
+            }
+      } while (false);
+      return $Maybe.Nothing;
+   };
+   var decode = function (items) {
+      var maybeAppend = function (x) {
+         return A2($CustomTools._op["?"],
+         $Basics.identity,
+         A2($Maybe.map,
+         F2(function (x,y) {    return A2($List._op["::"],x,y);}),
+         x));
+      };
+      var feed = A3($List.foldr,
+      maybeAppend,
+      _U.list([]),
+      A2($List.map,decodeItem,items));
+      return A2($ItemManager.init,
+      $ItemFeed.init(feed),
+      $ReminderForm.init);
+   };
+   var encodeItem = function (decorated) {
+      var _p1 = decorated.item;
+      if (_p1.ctor === "AMail") {
+            return _U.update(decorated,
+            {item: {ctor: "_Tuple2"
+                   ,_0: $Maybe.Just(_p1._0)
+                   ,_1: $Maybe.Nothing}});
+         } else {
+            return _U.update(decorated,
+            {item: {ctor: "_Tuple2"
+                   ,_0: $Maybe.Nothing
+                   ,_1: $Maybe.Just(_p1._0)}});
+         }
+   };
+   var encode = function (model) {
+      return A2($List.map,
+      function (_p2) {
+         return encodeItem($Basics.snd(_p2));
+      },
+      model.feed.items);
+   };
+   var StorageItem = F3(function (a,b,c) {
+      return {item: a,pinned: b,done: c};
+   });
+   return _elm.Storage.values = {_op: _op
+                                ,StorageItem: StorageItem
+                                ,encodeItem: encodeItem
+                                ,decodeItem: decodeItem
+                                ,encode: encode
+                                ,decode: decode};
+};

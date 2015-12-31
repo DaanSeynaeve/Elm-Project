@@ -17,7 +17,7 @@ Elm.Shortcuts.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var alt = $Keyboard.shift;
+   var alt = $Keyboard.alt;
    var alt_shortcuts = $Signal.mergeMany(A2($List.map,
    function (_p0) {
       var _p1 = _p0;

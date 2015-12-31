@@ -5,6 +5,7 @@ Elm.MailItem.make = function (_elm) {
    if (_elm.MailItem.values) return _elm.MailItem.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
@@ -14,65 +15,73 @@ Elm.MailItem.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Static = Elm.Static.make(_elm),
-   $String = Elm.String.make(_elm);
+   $String = Elm.String.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
-   var makeBody = function (state) {
-      return state.collapsed ? $String.fromList(A2($List.take,
-      200,
-      $String.toList(state.$static.body))) : state.$static.body;
-   };
    var update = F2(function (action,model) {
       var _p0 = action;
       return _U.update(model,
       {collapsed: $Basics.not(model.collapsed)});
    });
    var ToggleCollapse = {ctor: "ToggleCollapse"};
-   var makeMoreButton = F2(function (address,state) {
-      var lbl = function () {
-         var _p1 = state.collapsed;
-         if (_p1 === true) {
-               return "More";
-            } else {
-               return "Less";
-            }
-      }();
-      return _U.cmp($String.length(state.$static.body),
-      200) > 0 ? _U.list([A2($Html.button,
+   var equal = F2(function (m1,m2) {
+      return _U.eq(m1.date,m2.date) && (_U.eq(m1.from,
+      m2.from) && (_U.eq(m1.to,m2.to) && (_U.eq(m1.title,
+      m2.title) && _U.eq(m1.body,m2.body))));
+   });
+   var tooLong = function (model) {
+      return _U.cmp($String.length(model.body),200) > 0;
+   };
+   var makeBody = function (model) {
+      return model.collapsed && tooLong(model) ? A2($Basics._op["++"],
+      A2($String.left,200,model.body),
+      "...") : model.body;
+   };
+   var makeMoreButton = F2(function (address,model) {
+      var lbl = model.collapsed ? "More" : "Less";
+      return tooLong(model) ? _U.list([A2($Html.button,
       _U.list([A2($Html$Events.onClick,address,ToggleCollapse)]),
       _U.list([$Html.text(lbl)]))]) : _U.list([]);
    });
-   var view = F3(function (address,state,deco) {
+   var view = F3(function (deco,address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("item email")]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("timestamp")]),
               _U.list([$Html.text("Received: ")
-                      ,$Html.text(state.$static.date)]))
+                      ,$Html.text($CustomTools.formatDate(model.date))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("from")]),
-              _U.list([$Html.text("From: "),$Html.text(state.$static.from)]))
+              _U.list([$Html.text("From: "),$Html.text(model.from)]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("to")]),
-              _U.list([$Html.text("To: "),$Html.text(state.$static.to)]))
+              _U.list([$Html.text("To: "),$Html.text(model.to)]))
               ,A2($Html.h4,
               _U.list([]),
-              _U.list([$Html.text("Subj: "),$Html.text(state.$static.title)]))
+              _U.list([$Html.text("Subj: "),$Html.text(model.title)]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("body")]),
-              _U.list([$Html.text(makeBody(state))]))
+              _U.list([$Html.text(makeBody(model))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("buttons")]),
-              A2($Basics._op["++"],A2(makeMoreButton,address,state),deco))]));
+              A2($Basics._op["++"],A2(makeMoreButton,address,model),deco))]));
    });
-   var init = function (m) {
-      return {$static: m,collapsed: true};
+   var init = function ($static) {
+      return {date: $CustomTools.parseDate($static.date)
+             ,from: $static.from
+             ,to: $static.to
+             ,title: $static.title
+             ,body: $static.body
+             ,collapsed: true};
    };
-   var Model = F2(function (a,b) {
-      return {$static: a,collapsed: b};
+   var Model = F6(function (a,b,c,d,e,f) {
+      return {date: a,from: b,to: c,title: d,body: e,collapsed: f};
    });
    return _elm.MailItem.values = {_op: _op
                                  ,Model: Model
                                  ,init: init
+                                 ,tooLong: tooLong
+                                 ,equal: equal
                                  ,ToggleCollapse: ToggleCollapse
                                  ,update: update
                                  ,view: view

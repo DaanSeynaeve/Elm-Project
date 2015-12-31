@@ -5,9 +5,11 @@ Elm.ItemManager.make = function (_elm) {
    if (_elm.ItemManager.values) return _elm.ItemManager.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $ItemDecorator = Elm.ItemDecorator.make(_elm),
    $ItemFeed = Elm.ItemFeed.make(_elm),
    $List = Elm.List.make(_elm),
@@ -15,50 +17,79 @@ Elm.ItemManager.make = function (_elm) {
    $ReminderForm = Elm.ReminderForm.make(_elm),
    $ReminderItem = Elm.ReminderItem.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
-   var update = F2(function (action,_p0) {
-      var _p1 = _p0;
-      var _p5 = _p1._2;
-      var _p4 = _p1._1;
-      var _p3 = _p1._0;
-      var _p2 = action;
-      switch (_p2.ctor)
-      {case "FD": return {ctor: "_Tuple3"
-                         ,_0: A2($ItemFeed.update,_p2._0,_p3)
-                         ,_1: _p4
-                         ,_2: _p5};
-         case "FM": return {ctor: "_Tuple3"
-                           ,_0: _p3
-                           ,_1: A2($ReminderForm.update,_p2._0,_p4)
-                           ,_2: _p5};
-         case "Transfer": return {ctor: "_Tuple3"
-                                 ,_0: A2($ItemFeed.update,_p2._0,_p3)
-                                 ,_1: A2($ReminderForm.update,_p2._1,_p4)
-                                 ,_2: _p5};
-         default: return {ctor: "_Tuple3"
-                         ,_0: _p3
-                         ,_1: _p4
-                         ,_2: $Basics.not(_p5)};}
+   var MultiAction = function (a) {
+      return {ctor: "MultiAction",_0: a};
+   };
+   var ChangeStyle = function (a) {
+      return {ctor: "ChangeStyle",_0: a};
+   };
+   var viewConfig = F2(function (address,state) {
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([$CustomTools.header("Configuration")
+              ,$Html.text("Style: ")
+              ,function () {
+                 var target = $Signal.message(A2($Signal.forwardTo,
+                 address,
+                 ChangeStyle));
+                 return A2($Html.select,
+                 _U.list([A3($Html$Events.on,
+                 "input",
+                 $Html$Events.targetValue,
+                 target)]),
+                 _U.list([A2($Html.option,
+                         _U.list([$Html$Attributes.value("style.css")]),
+                         _U.list([$Html.text("Default")]))
+                         ,A2($Html.option,
+                         _U.list([$Html$Attributes.value("")]),
+                         _U.list([$Html.text("None")]))]));
+              }()]));
    });
-   var Transfer = F2(function (a,b) {
-      return {ctor: "Transfer",_0: a,_1: b};
-   });
+   var ChangeTime = function (a) {
+      return {ctor: "ChangeTime",_0: a};
+   };
+   var FM = function (a) {    return {ctor: "FM",_0: a};};
+   var FD = function (a) {    return {ctor: "FD",_0: a};};
    var makeTransfer = F2(function (reminder,a) {
       var item = A2($ItemDecorator.decorate,
       $ItemDecorator.AReminder,
       reminder);
-      return A2(Transfer,$ItemFeed.AddItem(item),a);
+      return MultiAction(_U.list([FD($ItemFeed.AddItem(item))
+                                 ,FM(a)]));
    });
-   var FM = function (a) {    return {ctor: "FM",_0: a};};
-   var FD = function (a) {    return {ctor: "FD",_0: a};};
-   var view = F2(function (address,_p6) {
-      var _p7 = _p6;
-      var _p9 = _p7._1;
+   var makeTimeChange = F2(function (time,model) {
+      var a2 = FM($ReminderForm.ChangeTime(time));
+      var changeItemTime = $ItemDecorator.ReminderAction($ReminderItem.ChangeTime(time));
+      var a1 = FD($ItemFeed.MapItemAction(changeItemTime));
+      return MultiAction(_U.list([a1,a2]));
+   });
+   var update = F2(function (action,model) {
+      update: while (true) {
+         var _p0 = action;
+         switch (_p0.ctor)
+         {case "MultiAction": return A3($List.foldl,update,model,_p0._0);
+            case "FD": return _U.update(model,
+              {feed: A2($ItemFeed.update,_p0._0,model.feed)});
+            case "FM": return _U.update(model,
+              {form: A2($ReminderForm.update,_p0._0,model.form)});
+            case "ToggleVisForm": return _U.update(model,
+              {showForm: $Basics.not(model.showForm)});
+            case "ChangeTime": var _v1 = A2(makeTimeChange,_p0._0,model),
+              _v2 = model;
+              action = _v1;
+              model = _v2;
+              continue update;
+            default: return _U.update(model,{stylesheet: _p0._0});}
+      }
+   });
+   var view = F2(function (address,model) {
       var fm = function (a) {
-         var _p8 = A2($ReminderForm.makeResult,a,_p9);
-         if (_p8.ctor === "Just") {
-               return A2(makeTransfer,_p8._0,a);
+         var _p1 = A2($ReminderForm.makeResult,a,model.form);
+         if (_p1.ctor === "Just") {
+               return A2(makeTransfer,_p1._0,a);
             } else {
                return FM(a);
             }
@@ -67,22 +98,34 @@ Elm.ItemManager.make = function (_elm) {
       _U.list([$Html$Attributes.id("pagewrap")]),
       _U.list([A2($ItemFeed.view,
               A2($Signal.forwardTo,address,FD),
-              _p7._0)
-              ,_p7._2 ? A2($ReminderForm.view,
+              model.feed)
+              ,model.showForm ? A2($ReminderForm.view,
               A2($Signal.forwardTo,address,fm),
-              _p9) : $Html.text("")]));
+              model.form) : $Html.text("")
+              ,A2(viewConfig,address,model)]));
    });
    var ToggleVisForm = {ctor: "ToggleVisForm"};
    var init = F2(function (feed,form) {
-      return {ctor: "_Tuple3",_0: feed,_1: form,_2: true};
+      return {feed: feed
+             ,form: form
+             ,showForm: true
+             ,stylesheet: "style.css"};
+   });
+   var Model = F4(function (a,b,c,d) {
+      return {feed: a,form: b,showForm: c,stylesheet: d};
    });
    return _elm.ItemManager.values = {_op: _op
+                                    ,Model: Model
                                     ,init: init
                                     ,ToggleVisForm: ToggleVisForm
                                     ,FD: FD
                                     ,FM: FM
-                                    ,Transfer: Transfer
-                                    ,makeTransfer: makeTransfer
+                                    ,ChangeTime: ChangeTime
+                                    ,ChangeStyle: ChangeStyle
+                                    ,MultiAction: MultiAction
                                     ,update: update
-                                    ,view: view};
+                                    ,makeTransfer: makeTransfer
+                                    ,makeTimeChange: makeTimeChange
+                                    ,view: view
+                                    ,viewConfig: viewConfig};
 };

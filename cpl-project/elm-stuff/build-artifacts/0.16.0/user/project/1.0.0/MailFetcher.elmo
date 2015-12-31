@@ -29,7 +29,7 @@ Elm.MailFetcher.make = function (_elm) {
    A2($Json$Decode._op[":="],"title",$Json$Decode.string),
    A2($Json$Decode._op[":="],"body",$Json$Decode.string),
    A2($Json$Decode._op[":="],"date",$Json$Decode.string))));
-   var sourceUrl = "http://localhost:8000/json/newmails.json";
+   var sourceUrl = "https://api.myjson.com/bins/19lg3";
    var newMails = $Signal.mailbox(_U.list([]));
    var makeMail = function (email) {
       return A2($ItemDecorator.decorate,
@@ -47,25 +47,14 @@ Elm.MailFetcher.make = function (_elm) {
    };
    var fetchMails = A2($Signal.map,
    lookupMails,
-   $Time.every(20 * $Time.second));
-   var dropOld = F2(function ($new,old) {
-      return A2($List.filter,
-      function (x) {
-         return $Basics.not(A2($List.member,x,old));
-      },
-      $new);
-   });
-   var signal = A3($Signal.foldp,
-   dropOld,
-   _U.list([]),
-   $Signal.dropRepeats(newMails.signal));
+   $Time.every(30 * $Time.second));
+   var signal = newMails.signal;
    return _elm.MailFetcher.values = {_op: _op
                                     ,signal: signal
-                                    ,dropOld: dropOld
                                     ,makeMail: makeMail
                                     ,newMails: newMails
-                                    ,sourceUrl: sourceUrl
                                     ,fetchMails: fetchMails
+                                    ,sourceUrl: sourceUrl
                                     ,lookupMails: lookupMails
                                     ,reader: reader};
 };

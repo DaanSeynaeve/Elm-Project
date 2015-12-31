@@ -5,6 +5,7 @@ Elm.ReminderItem.make = function (_elm) {
    if (_elm.ReminderItem.values) return _elm.ReminderItem.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $CustomTools = Elm.CustomTools.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
@@ -12,39 +13,74 @@ Elm.ReminderItem.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Static = Elm.Static.make(_elm);
+   $Static = Elm.Static.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
-   var view = F2(function (model,deco) {
+   var overtimeClass = function (model) {
+      return model.overtime ? " overtime" : "";
+   };
+   var view = F2(function (deco,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("item reminder")]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.$class("timestamp")]),
               _U.list([$Html.text("Created: ")
-                      ,$Html.text(model.$static.created)]))
+                      ,$Html.text($CustomTools.formatDate(model.created))]))
               ,A2($Html.div,
-              _U.list([$Html$Attributes.$class("timestamp")]),
-              _U.list([$Html.text("Deadline: "),$Html.text(model.deadline)]))
+              _U.list([$Html$Attributes.$class(A2($Basics._op["++"],
+              "timestamp",
+              overtimeClass(model)))]),
+              _U.list([$Html.text("Deadline: ")
+                      ,$Html.text(A2($CustomTools._op["?"],
+                      "None",
+                      A2($Maybe.map,$CustomTools.formatDate,model.deadline)))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("body")]),
-              _U.list([$Html.text(model.$static.body)]))
+              _U.list([$Html.text(model.body)]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("buttons")]),
               A2($Basics._op["++"],_U.list([]),deco))]));
    });
-   var initNew = function (_p0) {
-      var _p1 = _p0;
-      return {$static: {body: _p1._0,created: _p1._1}
-             ,deadline: _p1._2};
+   var update = F2(function (a,model) {
+      var _p0 = a;
+      var _p1 = model.deadline;
+      if (_p1.ctor === "Just") {
+            return _U.update(model,
+            {overtime: _U.cmp(_p0._0,_p1._0) > 0});
+         } else {
+            return model;
+         }
+   });
+   var ChangeTime = function (a) {
+      return {ctor: "ChangeTime",_0: a};
+   };
+   var equal = F2(function (r1,r2) {
+      return _U.eq(r1.body,r2.body) && (_U.eq(r1.created,
+      r2.created) && _U.eq(r1.deadline,r2.deadline));
+   });
+   var initNew = function (_p2) {
+      var _p3 = _p2;
+      return {body: _p3._0
+             ,created: $CustomTools.parseDate(_p3._1)
+             ,deadline: A2($Maybe.map,$CustomTools.parseDate,_p3._2)
+             ,overtime: false};
    };
    var init = function ($static) {
-      return {$static: $static,deadline: ""};
+      return {body: $static.body
+             ,created: $CustomTools.parseDate($static.created)
+             ,deadline: $Maybe.Nothing
+             ,overtime: false};
    };
-   var Model = F2(function (a,b) {
-      return {$static: a,deadline: b};
+   var Model = F4(function (a,b,c,d) {
+      return {body: a,created: b,deadline: c,overtime: d};
    });
    return _elm.ReminderItem.values = {_op: _op
                                      ,Model: Model
                                      ,init: init
                                      ,initNew: initNew
-                                     ,view: view};
+                                     ,equal: equal
+                                     ,ChangeTime: ChangeTime
+                                     ,update: update
+                                     ,view: view
+                                     ,overtimeClass: overtimeClass};
 };

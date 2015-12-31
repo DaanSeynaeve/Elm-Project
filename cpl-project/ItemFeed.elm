@@ -8,119 +8,145 @@ import Html.Attributes as A
 import Html.Events as E
 import Date
 import Maybe exposing ( andThen )
+import Debug
 --
-import ItemDecorator
+import ItemDecorator as ID
 import CustomTools as CT exposing ( (?) )
 
 -- ### Model ###
 
-type alias ItemList = List (Int, ItemDecorator.Model)
+type alias ItemList =
+    List (Int, ID.Model)
+
 type SortKey = Default | OldOnTop
 
 type alias Model = {
     items : ItemList,
     focus : Int,
     skey  : SortKey,
-    dvis  : Bool
+    showTodo  : Bool
 }
 
-init : List ItemDecorator.Model -> Model
-init items = {
-        items = List.map2 (,) [0..List.length(items)-1] items,
-        focus = 0,
-        skey = Default,
-        dvis = True
+init : List ID.Model -> Model
+init items = update (AddBatch items)
+    {   items = []
+    ,   focus = 0
+    ,   skey = Default
+    ,   showTodo = True
     }
+
+-- ### Helper functions ###
 
 -- return the itemlist of the model correctly sorted
 sortedFeed : Model -> ItemList
-sortedFeed model = case model.skey of
-    Default -> (uncurry (++)) <| List.partition (.pinned << snd) model.items
-    OldOnTop -> List.sortBy (ItemDecorator.dateString << snd) model.items
+sortedFeed model =
+    let dateSorted = List.sortBy (ID.itemTime << snd) model.items
+    in  case model.skey of
+        Default -> (uncurry (++)) <| List.partition (.pinned << snd) <|
+            List.reverse dateSorted
+        OldOnTop -> dateSorted
 
 -- split a given item list in 2 sublist: todo and done
 splitFeed : ItemList -> (ItemList,ItemList)
 splitFeed items = List.partition (not << .done << snd) items
 
--- maybe return the identifier for the item at the given index
+-- returns the visible part of the item list correctly sorted
+visible : Model -> ItemList
+visible model =
+    let (l1,l2) = splitFeed (sortedFeed model)
+    in  if model.showTodo then l1++l2 else l1
+
+-- maybe return the identifier for the item
+-- at the given index in the given list
 itemId : ItemList -> Int -> Maybe Int
 itemId items i = Maybe.map fst <| head <| List.drop i items
 
--- returns the fid for given model
+-- returns the identifier for the focused item in the
+-- visible list if it is visibile otherwise (-1)
 getFid : Model -> Int
-getFid model =
-    let (l1,l2) = splitFeed (sortedFeed model)
-    in  (-1 ? (head l1 `andThen` (Just << fst))) ?
-        (itemId (if model.dvis then l1++l2 else l1) model.focus)
+getFid model = (-1) ? itemId (visible model) model.focus
 
 -- ### Update ###
 
-type Action = ItemAction (Int, ItemDecorator.Action)
-            | FocusAction ItemDecorator.Action
-            | ChangeFocus FocusDirection
-            | SortAction SortKey
-            | AddItem ItemDecorator.Model
-            | AddBatch (List ItemDecorator.Model)
-            | ToggleDoneVis
+type Action
+    = ItemAction (Int, ID.Action)
+    | FocusAction ID.Action
+    | MapItemAction ID.Action
+    | ChangeFocus FocusDirection
+    | SortAction SortKey
+    | AddItem ID.Model
+    | AddBatch (List ID.Model)
+    | ToggleDoneVis
 
 type FocusDirection = Prev | Next
 
 update : Action -> Model -> Model
-update action model = case action of
-        ItemAction ia   -> updateItem ia model
-        FocusAction fa  -> updateItem ((getFid model),fa) model
-        ChangeFocus fd  -> updateFocus fd model
-        SortAction skey -> { model | skey = skey }
-        AddItem item    -> addItem item model
-        ToggleDoneVis   -> { model | dvis = not model.dvis }
-        AddBatch items  -> List.foldl addItem model items
+update action model = updateFocus <| case action of
+    ItemAction a    -> updateItem a model
+    FocusAction a   -> updateItem ((getFid model),a) model
+    MapItemAction a ->
+        let mapSnd f = List.map (\(x,y) -> (x, f y))
+        in  { model | items = mapSnd (ID.update a) model.items }
 
-addItem : ItemDecorator.Model -> Model -> Model
+    AddItem item    -> addItem item model
+    AddBatch items  -> List.foldr addItem model items
+
+    ChangeFocus fd  -> changeFocus fd model
+    ToggleDoneVis   -> { model | showTodo = not model.showTodo }
+    SortAction key  -> { model | skey = key }
+
+containsItem : ID.Model -> Model -> Bool
+containsItem item model =
+    List.any (ID.itemEqual item << snd) model.items
+
+addItem : ID.Model -> Model -> Model
 addItem item model =
-    { model | items = (length model.items,item)::model.items }
+    if not (containsItem item model)
+    then { model | items = (length model.items,item)::model.items }
+    else model
 
-updateItem : (Int,ItemDecorator.Action) -> Model -> Model
-updateItem ia model =
+updateItem : (Int,ID.Action) -> Model -> Model
+updateItem (id,a) model =
     let items' =
-        List.map (\(i,x) ->
-            if (i == (fst ia))
-            then (i,ItemDecorator.update (snd ia) x)
-            else (i,x)) model.items
+        List.map
+            (\(i,item) ->
+                if (id == i) then (i, ID.update a item) else (i,item))
+            model.items
     in { model | items = items' }
 
-updateFocus : FocusDirection -> Model -> Model
-updateFocus fd model =
-    let focus' =
-        let len = length (
-            if model.dvis
-            then model.items
-            else fst (splitFeed model.items) )
-        in if len == 0 then model.focus else case fd of
-            Next -> (model.focus + 1) % len
-            Prev -> (model.focus - 1) % len
+updateFocus : Model -> Model
+updateFocus model =
+    { model | focus = min model.focus ((length (visible model))-1) }
+
+changeFocus : FocusDirection -> Model -> Model
+changeFocus fdir model =
+    let len = length (visible model)
+        focus' = if len == 0 then model.focus
+            else case fdir of
+                Next -> (model.focus + 1) % len
+                Prev -> (model.focus - 1) % len
     in { model | focus = focus' }
 
 -- ### View ###
 
 view : Signal.Address Action -> Model -> Html
-view address state =
-    let (l1,l2) = splitFeed (sortedFeed state)
-        fid = getFid state
+view address model =
+    let (l1,l2) = splitFeed (sortedFeed model)
+        fid = getFid model
         subview = viewItems address fid
     in Html.div [] <|
-        (subview "To Do" l1) ++
-        if (not (isEmpty l2)) && state.dvis
-        then subview "Done" l2
-        else []
+        (if not (isEmpty l1)
+            then subview "To Do" l1 else []) ++
+        (if not (isEmpty l2) && model.showTodo
+            then subview "Done" l2 else [])
 
 viewItems : Signal.Address Action -> Int -> String -> ItemList -> List Html
 viewItems address fid title items =
-    let tag i a = ItemAction (i,a)
+    let tag id a = ItemAction (id,a)
+        newAddress id = Signal.forwardTo address (tag id)
+        subview id = ID.view (newAddress id)
     in [CT.header title] ++
-        List.map
-        (\(i,x) -> wrapItem (i==fid)
-            (ItemDecorator.view (Signal.forwardTo address (tag i)) x))
-        items
+        List.map (\(id,item) -> wrapItem (id==fid) (subview id item)) items
 
 wrapItem : Bool -> Html -> Html
 wrapItem focus item = Html.div

@@ -5,11 +5,11 @@ import Signal
 --
 import ItemFeed as Feed
 import ItemDecorator as ID
-import ItemManager as M
+import ItemManager as IM
 import MailItem
 import CustomTools exposing ( toMaybe )
 
-type alias Action = M.Action
+type alias Action = IM.Action
 
 -- ### Outgoing signal ###
 
@@ -20,7 +20,8 @@ signal = Signal.merge
 
 -- ### Shortcuts ###
 
-alt = K.shift -- ALT modifier
+-- alt = K.shift -- ALT modifier
+alt = K.alt
 
 alt_shortcuts : Signal (Maybe Action)
 alt_shortcuts = Signal.mergeMany <|
@@ -28,20 +29,20 @@ alt_shortcuts = Signal.mergeMany <|
         let f x y = (toMaybe act) (x && y)
         in Signal.dropRepeats <| Signal.map2 f alt k
     )   [   -- default hotkeys
-            (K.isDown 74, M.FD <| Feed.ChangeFocus Feed.Next)       -- J
-        ,   (K.isDown 75, M.FD <| Feed.ChangeFocus Feed.Prev)       -- K
-        ,   (K.isDown 79, M.FD <| Feed.FocusAction <|               -- O
+            (K.isDown 74, IM.FD <| Feed.ChangeFocus Feed.Next)       -- J
+        ,   (K.isDown 75, IM.FD <| Feed.ChangeFocus Feed.Prev)       -- K
+        ,   (K.isDown 79, IM.FD <| Feed.FocusAction <|               -- O
                             ID.MailAction MailItem.ToggleCollapse)
-        ,   (K.isDown 80, M.FD <| Feed.FocusAction ID.TogglePinned) -- P
-        ,   (K.isDown 88, M.FD <| Feed.FocusAction ID.ToggleDone)   -- X
+        ,   (K.isDown 80, IM.FD <| Feed.FocusAction ID.TogglePinned) -- P
+        ,   (K.isDown 88, IM.FD <| Feed.FocusAction ID.ToggleDone)   -- X
 
             -- custom hotkeys
-        ,   (K.isDown 86, M.FD <| Feed.ToggleDoneVis )              -- V
-        ,   (K.isDown 70, M.ToggleVisForm)                          -- F
+        ,   (K.isDown 86, IM.FD <| Feed.ToggleDoneVis )              -- V
+        ,   (K.isDown 70, IM.ToggleVisForm)                          -- F
         ]
 
 alt_s : Signal (Maybe Action)
-alt_s = Signal.map2 (\ak s -> Just <| M.FD <| Feed.SortAction <|
+alt_s = Signal.map2 (\ak s -> Just <| IM.FD <| Feed.SortAction <|
             case ak && s of
                 False -> Feed.Default
                 True -> Feed.OldOnTop

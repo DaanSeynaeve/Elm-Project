@@ -11,7 +11,8 @@ Elm.CustomTools.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
    var monthToInt = function (m) {
       var _p0 = m;
@@ -29,71 +30,68 @@ Elm.CustomTools.make = function (_elm) {
          case "Nov": return 11;
          default: return 12;}
    };
-   var formatDate = function (date) {
+   var parseDate = function (dateString) {
+      return $Date.toTime(A2($Result.withDefault,
+      $Date.fromTime(0),
+      $Date.fromString(dateString)));
+   };
+   var formatDate = function (time) {
+      var leading0 = function (x) {
+         return _U.cmp(x,10) < 0 ? "0" : "";
+      };
+      var date = $Date.fromTime(time);
+      var month$ = function (_p1) {
+         return monthToInt($Date.month(_p1));
+      }(date);
+      var day$ = $Date.day(date);
       return A2($Basics._op["++"],
-      function (_p1) {
-         return $Basics.toString($Date.year(_p1));
-      }(date),
-      A2($Basics._op["++"],
-      "-",
-      A2($Basics._op["++"],
       function (_p2) {
-         return $Basics.toString(monthToInt($Date.month(_p2)));
+         return $Basics.toString($Date.year(_p2));
       }(date),
       A2($Basics._op["++"],
       "-",
-      function (_p3) {
-         return $Basics.toString($Date.day(_p3));
-      }(date)))));
+      A2($Basics._op["++"],
+      leading0(month$),
+      A2($Basics._op["++"],
+      $Basics.toString(month$),
+      A2($Basics._op["++"],
+      "-",
+      A2($Basics._op["++"],
+      leading0(day$),
+      $Basics.toString(day$)))))));
    };
    var header = function (s) {
       return A2($Html.h2,_U.list([]),_U.list([$Html.text(s)]));
    };
-   var nor = F2(function (x,y) {
-      return A2(F2(function (x,y) {    return x || y;}),
-      $Basics.not(x),
-      $Basics.not(y));
-   });
-   _op["?"] = F2(function ($default,maybe) {
-      return A2($Maybe.withDefault,$default,maybe);
-   });
-   _op["$"] = F2(function (caption,s) {
-      return A2($Signal.map,$Debug.watch(caption),s);
+   _op["?"] = F2(function ($default,mb) {
+      return A2($Maybe.withDefault,$default,mb);
    });
    var watchSignal = function (caption) {
       return $Signal.map($Debug.watch(caption));
    };
+   _op["$"] = watchSignal;
    var toMaybe = F2(function (a,bool) {
-      var _p4 = bool;
-      if (_p4 === true) {
+      var _p3 = bool;
+      if (_p3 === true) {
             return $Maybe.Just(a);
          } else {
             return $Maybe.Nothing;
          }
    });
    var isDefined = function (maybe) {
-      var _p5 = maybe;
-      if (_p5.ctor === "Just") {
+      var _p4 = maybe;
+      if (_p4.ctor === "Just") {
             return true;
          } else {
             return false;
          }
    };
-   var zip = F2(function (xs,ys) {
-      return A3($List.map2,
-      F2(function (v0,v1) {
-         return {ctor: "_Tuple2",_0: v0,_1: v1};
-      }),
-      xs,
-      ys);
-   });
    return _elm.CustomTools.values = {_op: _op
-                                    ,zip: zip
                                     ,isDefined: isDefined
                                     ,toMaybe: toMaybe
                                     ,watchSignal: watchSignal
-                                    ,nor: nor
                                     ,header: header
-                                    ,monthToInt: monthToInt
-                                    ,formatDate: formatDate};
+                                    ,formatDate: formatDate
+                                    ,parseDate: parseDate
+                                    ,monthToInt: monthToInt};
 };

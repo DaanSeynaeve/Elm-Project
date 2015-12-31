@@ -13,11 +13,7 @@ import Static
 -- ### Outgoing signal ###
 
 signal : Signal (List ID.Model)
-signal = Signal.foldp dropOld [] <|
-    Signal.dropRepeats newMails.signal
-
-dropOld : List x -> List x -> List x
-dropOld new old = List.filter (\x -> not(List.member x old)) new
+signal = newMails.signal
 
 -- ###
 
@@ -28,19 +24,21 @@ makeMail email =
 newMails : Signal.Mailbox (List ID.Model)
 newMails = Signal.mailbox []
 
-sourceUrl : String
-sourceUrl = "http://localhost:8000/json/newmails.json"
--- sourceUrl = "http://people.cs.kuleuven.be/~bob.reynders/2015-2016/emails.json"
-
 fetchMails : Signal (Task Http.Error ())
-fetchMails = Signal.map lookupMails (every (20*second))
+fetchMails = Signal.map lookupMails (every (30*second))
+
+sourceUrl : String
+sourceUrl = "https://api.myjson.com/bins/19lg3"
+-- sourceUrl = "http://localhost:8000/json/emails.json" -- debug
+-- sourceUrl = "http://people.cs.kuleuven.be/~bob.reynders/2015-2016/emails.json"
 
 lookupMails _ =
     Http.get reader sourceUrl
     `andThen` (\task -> Signal.send newMails.address (List.map makeMail task))
 
 reader : Json.Decoder (List Static.Email)
-reader = ((:=) "emails") <| Json.list <| Json.object5 Static.Email
+reader = ((:=) "emails") <| Json.list <|
+    Json.object5 Static.Email
         ("from" := Json.string)
         ("to" := Json.string)
         ("title" := Json.string)

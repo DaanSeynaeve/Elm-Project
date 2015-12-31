@@ -6,7 +6,6 @@ Elm.ReminderForm.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $CustomTools = Elm.CustomTools.make(_elm),
-   $Date = Elm.Date.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
@@ -40,10 +39,10 @@ Elm.ReminderForm.make = function (_elm) {
    var Body = function (a) {    return {ctor: "Body",_0: a};};
    var Submit = {ctor: "Submit"};
    var defaultTime = function (time) {
-      return $CustomTools.formatDate($Date.fromTime(time));
+      return $CustomTools.formatDate(time);
    };
-   var view = F2(function (address,state) {
-      var tag = function (x) {
+   var view = F2(function (address,model) {
+      var message = function (x) {
          return $Signal.message(A2($Signal.forwardTo,address,x));
       };
       return A2($Html.div,
@@ -53,16 +52,20 @@ Elm.ReminderForm.make = function (_elm) {
               _U.list([A3($Html$Events.on,
                       "input",
                       $Html$Events.targetValue,
-                      tag(Body))
-                      ,$Html$Attributes.value(state.body)
+                      message(Body))
+                      ,$Html$Attributes.value(model.body)
                       ,$Html$Attributes.rows(2)
                       ,$Html$Attributes.cols(40)
                       ,$Html$Attributes.$class("big")]),
               _U.list([]))
+              ,$Html.text("Date:")
               ,A2(viewDateInput,
-              A2($CustomTools._op["?"],defaultTime(state.time),state.created),
-              tag(Created))
-              ,A2(viewDateInput,state.deadline,tag(Deadline))
+              A2($CustomTools._op["?"],defaultTime(model.time),model.created),
+              message(Created))
+              ,$Html.text("Deadline:")
+              ,A2(viewDateInput,
+              A2($CustomTools._op["?"],"",model.deadline),
+              message(Deadline))
               ,A2($Html.button,
               _U.list([A2($Html$Events.onClick,address,Submit)]),
               _U.list([$Html.text("Add")]))]));
@@ -83,7 +86,7 @@ Elm.ReminderForm.make = function (_elm) {
    });
    var init = {body: ""
               ,created: $Maybe.Nothing
-              ,deadline: ""
+              ,deadline: $Maybe.Nothing
               ,time: 0};
    var update = F2(function (a,model) {
       var _p1 = a;
@@ -91,27 +94,15 @@ Elm.ReminderForm.make = function (_elm) {
       {case "Body": return _U.update(model,{body: _p1._0});
          case "Created": return _U.update(model,
            {created: $Maybe.Just(_p1._0)});
-         case "Deadline": return _U.update(model,{deadline: _p1._0});
+         case "Deadline": return _U.update(model,
+           {deadline: $Maybe.Just(_p1._0)});
          case "Submit": return _U.update(init,{time: model.time});
          default: return _U.update(model,{time: _p1._0});}
    });
    var Model = F4(function (a,b,c,d) {
       return {body: a,created: b,deadline: c,time: d};
    });
-   var first = function (time) {
-      return $Signal.dropRepeats(A3($Signal.foldp,
-      F2(function (x,y) {
-         return _U.eq(y,0) ? x : A2($Basics.min,x,y);
-      }),
-      0,
-      time));
-   };
-   var signal = A2($Signal.map,
-   ChangeTime,
-   first($Time.every($Time.second)));
    return _elm.ReminderForm.values = {_op: _op
-                                     ,signal: signal
-                                     ,first: first
                                      ,Model: Model
                                      ,init: init
                                      ,defaultTime: defaultTime

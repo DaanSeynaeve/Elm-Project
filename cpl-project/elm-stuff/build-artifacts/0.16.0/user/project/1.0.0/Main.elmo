@@ -23,7 +23,9 @@ Elm.Main.make = function (_elm) {
    $Shortcuts = Elm.Shortcuts.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Static = Elm.Static.make(_elm),
-   $Task = Elm.Task.make(_elm);
+   $Storage = Elm.Storage.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
    var _op = {};
    var css = function (path) {
       return A3($Html.node,
@@ -32,20 +34,16 @@ Elm.Main.make = function (_elm) {
               ,$Html$Attributes.href(path)]),
       _U.list([]));
    };
-   var view = F2(function (address,state) {
-      return A2($Html.main$,
+   var view = F2(function (address,model) {
+      return A2($Html.div,
       _U.list([]),
-      _U.list([A2($Html.header,
-              _U.list([]),
-              _U.list([css("style.css")]))
-              ,A2($Html.body,
-              _U.list([]),
-              _U.list([A2($ItemManager.view,
+      _U.list([css(model.stylesheet)
+              ,A2($ItemManager.view,
               A2($Signal.forwardTo,address,$Maybe.Just),
-              state)]))]));
+              model)]));
    });
-   var update = F2(function (action,model) {
-      var _p0 = action;
+   var update = F2(function (maybeAction,model) {
+      var _p0 = maybeAction;
       if (_p0.ctor === "Just") {
             return A2($ItemManager.update,_p0._0,model);
          } else {
@@ -54,58 +52,111 @@ Elm.Main.make = function (_elm) {
    });
    var fetchMails = Elm.Native.Task.make(_elm).performSignal("fetchMails",
    $MailFetcher.fetchMails);
-   var makeFormUpdate = $Signal.map(function (_p1) {
-      return $Maybe.Just($ItemManager.FM(_p1));
+   var getStorage = Elm.Native.Port.make(_elm).inbound("getStorage",
+   "Maybe.Maybe Storage.StorageModel",
+   function (v) {
+      return v === null ? Elm.Maybe.make(_elm).Nothing : Elm.Maybe.make(_elm).Just(typeof v === "object" && v instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.map(function (v) {
+         return typeof v === "object" && "item" in v && "pinned" in v && "done" in v ? {_: {}
+                                                                                       ,item: typeof v.item === "object" && v.item instanceof Array ? {ctor: "_Tuple2"
+                                                                                                                                                      ,_0: v.item[0] === null ? Elm.Maybe.make(_elm).Nothing : Elm.Maybe.make(_elm).Just(typeof v.item[0] === "object" && "date" in v.item[0] && "from" in v.item[0] && "to" in v.item[0] && "title" in v.item[0] && "body" in v.item[0] && "collapsed" in v.item[0] ? {_: {}
+                                                                                                                                                                                                                                                                                                                                                                                                                       ,date: typeof v.item[0].date === "number" ? v.item[0].date : _U.badPort("a number",
+                                                                                                                                                                                                                                                                                                                                                                                                                       v.item[0].date)
+                                                                                                                                                                                                                                                                                                                                                                                                                       ,from: typeof v.item[0].from === "string" || typeof v.item[0].from === "object" && v.item[0].from instanceof String ? v.item[0].from : _U.badPort("a string",
+                                                                                                                                                                                                                                                                                                                                                                                                                       v.item[0].from)
+                                                                                                                                                                                                                                                                                                                                                                                                                       ,to: typeof v.item[0].to === "string" || typeof v.item[0].to === "object" && v.item[0].to instanceof String ? v.item[0].to : _U.badPort("a string",
+                                                                                                                                                                                                                                                                                                                                                                                                                       v.item[0].to)
+                                                                                                                                                                                                                                                                                                                                                                                                                       ,title: typeof v.item[0].title === "string" || typeof v.item[0].title === "object" && v.item[0].title instanceof String ? v.item[0].title : _U.badPort("a string",
+                                                                                                                                                                                                                                                                                                                                                                                                                       v.item[0].title)
+                                                                                                                                                                                                                                                                                                                                                                                                                       ,body: typeof v.item[0].body === "string" || typeof v.item[0].body === "object" && v.item[0].body instanceof String ? v.item[0].body : _U.badPort("a string",
+                                                                                                                                                                                                                                                                                                                                                                                                                       v.item[0].body)
+                                                                                                                                                                                                                                                                                                                                                                                                                       ,collapsed: typeof v.item[0].collapsed === "boolean" ? v.item[0].collapsed : _U.badPort("a boolean (true or false)",
+                                                                                                                                                                                                                                                                                                                                                                                                                       v.item[0].collapsed)} : _U.badPort("an object with fields `date`, `from`, `to`, `title`, `body`, `collapsed`",
+                                                                                                                                                      v.item[0]))
+                                                                                                                                                      ,_1: v.item[1] === null ? Elm.Maybe.make(_elm).Nothing : Elm.Maybe.make(_elm).Just(typeof v.item[1] === "object" && "body" in v.item[1] && "created" in v.item[1] && "deadline" in v.item[1] && "overtime" in v.item[1] ? {_: {}
+                                                                                                                                                                                                                                                                                                                                                                                ,body: typeof v.item[1].body === "string" || typeof v.item[1].body === "object" && v.item[1].body instanceof String ? v.item[1].body : _U.badPort("a string",
+                                                                                                                                                                                                                                                                                                                                                                                v.item[1].body)
+                                                                                                                                                                                                                                                                                                                                                                                ,created: typeof v.item[1].created === "number" ? v.item[1].created : _U.badPort("a number",
+                                                                                                                                                                                                                                                                                                                                                                                v.item[1].created)
+                                                                                                                                                                                                                                                                                                                                                                                ,deadline: v.item[1].deadline === null ? Elm.Maybe.make(_elm).Nothing : Elm.Maybe.make(_elm).Just(typeof v.item[1].deadline === "number" ? v.item[1].deadline : _U.badPort("a number",
+                                                                                                                                                                                                                                                                                                                                                                                v.item[1].deadline))
+                                                                                                                                                                                                                                                                                                                                                                                ,overtime: typeof v.item[1].overtime === "boolean" ? v.item[1].overtime : _U.badPort("a boolean (true or false)",
+                                                                                                                                                                                                                                                                                                                                                                                v.item[1].overtime)} : _U.badPort("an object with fields `body`, `created`, `deadline`, `overtime`",
+                                                                                                                                                      v.item[1]))} : _U.badPort("an array",
+                                                                                       v.item)
+                                                                                       ,pinned: typeof v.pinned === "boolean" ? v.pinned : _U.badPort("a boolean (true or false)",
+                                                                                       v.pinned)
+                                                                                       ,done: typeof v.done === "boolean" ? v.done : _U.badPort("a boolean (true or false)",
+                                                                                       v.done)} : _U.badPort("an object with fields `item`, `pinned`, `done`",
+         v);
+      })) : _U.badPort("an array",v));
    });
-   var makeFeedBatch = $Signal.map(function (_p2) {
+   var timing = A2($Signal.map,
+   function (_p1) {
+      return $Maybe.Just($ItemManager.ChangeTime(_p1));
+   },
+   $Time.every($Time.second));
+   var newMails = A2($Signal.map,
+   function (_p2) {
       return $Maybe.Just($ItemManager.FD($ItemFeed.AddBatch(_p2)));
-   });
+   },
+   $MailFetcher.signal);
    var mailbox = $Signal.mailbox($Maybe.Nothing);
-   var master = $Signal.mergeMany(A2($Basics._op["++"],
-   _U.list([A2($CustomTools._op["$"],"MAILBOX",mailbox.signal)]),
-   A2($Basics._op["++"],
-   _U.list([A2($CustomTools._op["$"],
-   "NEW MAIL",
-   makeFeedBatch($MailFetcher.signal))]),
-   A2($Basics._op["++"],
-   _U.list([A2($CustomTools._op["$"],
-   "FORM",
-   makeFormUpdate($ReminderForm.signal))]),
-   _U.list([A2($CustomTools._op["$"],
-   "SHORTCUT",
-   $Shortcuts.signal)])))));
-   var initFeed = $ItemFeed.init(A2($Basics._op["++"],
-   A2($List.map,
-   function (_p3) {
-      return A2($ItemDecorator.decorate,
-      $ItemDecorator.AMail,
-      $MailItem.init(_p3));
+   var master = $Signal.mergeMany(_U.list([mailbox.signal
+                                          ,newMails
+                                          ,timing
+                                          ,$Shortcuts.signal]));
+   var initNew = function () {
+      var reminderItems = A2($List.map,
+      function (_p3) {
+         return A2($ItemDecorator.decorate,
+         $ItemDecorator.AReminder,
+         $ReminderItem.init(_p3));
+      },
+      $Static.reminders);
+      var mailItems = A2($List.map,
+      function (_p4) {
+         return A2($ItemDecorator.decorate,
+         $ItemDecorator.AMail,
+         $MailItem.init(_p4));
+      },
+      $Static.emails);
+      var feed = $ItemFeed.init(A2($Basics._op["++"],
+      mailItems,
+      reminderItems));
+      return A2($ItemManager.init,feed,$ReminderForm.init);
+   }();
+   var init = A2($CustomTools._op["?"],
+   initNew,
+   A2($Maybe.map,$Storage.decode,getStorage));
+   var state = A3($Signal.foldp,update,init,master);
+   var setStorage = Elm.Native.Port.make(_elm).outboundSignal("setStorage",
+   function (v) {
+      return Elm.Native.List.make(_elm).toArray(v).map(function (v) {
+         return {item: [v.item._0.ctor === "Nothing" ? null : {date: v.item._0._0.date
+                                                              ,from: v.item._0._0.from
+                                                              ,to: v.item._0._0.to
+                                                              ,title: v.item._0._0.title
+                                                              ,body: v.item._0._0.body
+                                                              ,collapsed: v.item._0._0.collapsed}
+                       ,v.item._1.ctor === "Nothing" ? null : {body: v.item._1._0.body
+                                                              ,created: v.item._1._0.created
+                                                              ,deadline: v.item._1._0.deadline.ctor === "Nothing" ? null : v.item._1._0.deadline._0
+                                                              ,overtime: v.item._1._0.overtime}]
+                ,pinned: v.pinned
+                ,done: v.done};
+      });
    },
-   $Static.emails),
-   A2($List.map,
-   function (_p4) {
-      return A2($ItemDecorator.decorate,
-      $ItemDecorator.AReminder,
-      $ReminderItem.init(_p4));
-   },
-   $Static.reminders)));
-   var init = A2($ItemManager.init,initFeed,$ReminderForm.init);
-   var state = A3($Signal.foldp,
-   update,
-   init,
-   A2($CustomTools._op["$"],"MASTER",master));
-   var main = A2($Signal.map,
-   view(mailbox.address),
-   A2($CustomTools._op["$"],"MAIN STATE",state));
+   A2($Signal.map,$Storage.encode,state));
+   var main = A2($Signal.map,view(mailbox.address),state);
    return _elm.Main.values = {_op: _op
                              ,main: main
                              ,state: state
                              ,init: init
-                             ,initFeed: initFeed
+                             ,initNew: initNew
                              ,master: master
                              ,mailbox: mailbox
-                             ,makeFeedBatch: makeFeedBatch
-                             ,makeFormUpdate: makeFormUpdate
+                             ,newMails: newMails
+                             ,timing: timing
                              ,update: update
                              ,view: view
                              ,css: css};
