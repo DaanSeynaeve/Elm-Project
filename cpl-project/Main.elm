@@ -7,7 +7,7 @@ module Main where
 -- DISCLAIMERS:
 -- (1) Because of the local storage functionality, the build procedure differs
 -- from what was mentioned in the assignment. Build using the following:
---  > sh Build.sh
+--  > make
 --
 -- (2) Marking an item as done keeps the focus on the same position similar
 -- to the behaviour under pinning & sorting.
